@@ -1,3 +1,9 @@
-fun main() {
-    println("Hello world!")
+fun main(args: Array<String>) {
+
+    val first: Int = 10.323
+    val second: Int = 20.15
+
+    val sum = fir222st + 1second
+
+    print("The sum is: $sum")
 }
