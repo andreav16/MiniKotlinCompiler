@@ -1,4 +1,5 @@
 %option noyywrap
+%option yylineno
 %{
   #include "tokens.h"
 
@@ -9,11 +10,9 @@ DIGIT [0-9]
 
 %%
 
-{LETTER}({LETTER}|{DIGIT})* { return TK_ID; }
-{DIGIT}+"."{DIGIT}+ { return TK_LIT_FLOAT; }
-{DIGIT}+ { return TK_LIT_INT; }
-"//"[^'']*[\n] { return TK_LINE_COMMENT; }
-"/*"[^'']*"/*" { return TK_BLOCK_COMMENT; }
+
+"//"[^\n]* { return TK_LINE_COMMENT; }
+"/*"([^\*])*"*/" { return TK_BLOCK_COMMENT; }
 "+" {return '+';}
 "-" {return '-';}
 "*" {return '*';}
@@ -38,10 +37,10 @@ DIGIT [0-9]
 "{" {return '{';}
 "}" {return '}';}
 ".." {return TK_RANGE;}
+"," {return ',';}
 ";" {return ';';}
 ":" {return ':';}
-[\t \n \r] {/*ignore*/}
-"break" {return KW_BREAK;}/*Palabras reservadas*/
+"break" {return KW_BREAK;}
 "do" {return KW_DO;}
 "else" {return KW_ELSE;}
 "false" {return KW_FALSE;}
@@ -65,12 +64,14 @@ DIGIT [0-9]
 "Char" {return KW_CHAR;}
 "Boolean" {return KW_BOOLEAN;}
 "String" {return KW_STRING;}
-
 "readLine" {return KW_READLINE;}
 "print" {return KW_PRINT;}
+{LETTER}({LETTER}|{DIGIT})* { return TK_ID; }
+{DIGIT}+"."{DIGIT}+ { return TK_LIT_FLOAT; }
+{DIGIT}+ { return TK_LIT_INT; }
 "\""[^']{0,1}"\"" {return TK_LIT_CHAR;}/*Char*/
 "\""[^']*"\"" {return TK_LIT_STRING;}/*Cadena/string*/
-
+[\t \n \r] {/*ignore*/}
 . {printf("Caracter invalido %c en la linea %d\n",yytext[0],yylineno);return -1;}
 
 %%

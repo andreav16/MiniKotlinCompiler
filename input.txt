@@ -1,9 +1,41 @@
+// Codigos pa probar
+
 fun main(args: Array<String>) {
 
-    val first: Int = 10.323
-    val second: Int = 20.15
+    val year = 1900
+    var leap = false
 
-    val sum = fir222st + 1second
+    if (year % 4 == 0) {
+        if (year % 100 == 0) {
+            /* year is divisible by 400, 
+            hence the year is a leap year*/
+            leap = year % 400 == 0
+        } else
+            leap = true
+    } else
+        leap = false
 
-    print("The sum is: $sum")
+    println(if (leap) "$year is a leap year." else "$year is not a leap year.")
 }
+
+
+fun bubbleSort(arr:IntArray):IntArray{
+    var swap = true
+    while(swap){
+        swap = false
+        for(i in 0 until arr.size-1){
+            if(arr[i] > arr[i+1]){
+                val temp = arr[i]
+                arr[i] = arr[i+1]
+                arr[i + 1] = temp
+
+                swap = true
+            }
+        }
+    }
+    return arr
+}
+
+fun main(args: Array<String>) {
+    val list = bubbleSort(intArrayOf(2,15,1,8,4))
+    for (k in list) print("$k ")
