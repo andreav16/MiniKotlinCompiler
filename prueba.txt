@@ -1,0 +1,13 @@
+fun main(args: Array<String>) {
+
+    val year = 1900
+
+    var leap: Boolean = false
+
+    val id: String = "Angella"
+
+    println("Hola mundo")
+
+    print("Holiss jeje")
+
+}

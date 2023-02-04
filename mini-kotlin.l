@@ -47,6 +47,8 @@ DIGIT [0-9]
 "true" {return KW_TRUE;}
 "for" {return KW_FOR;}
 "fun" {return KW_FUN;}
+"main" {return KW_MAIN;}
+"args" {return KW_ARGS;}
 "if" {return KW_IF;}
 "in" {return KW_IN;}
 "return" {return KW_RETURN;}
@@ -65,12 +67,13 @@ DIGIT [0-9]
 "Boolean" {return KW_BOOLEAN;}
 "String" {return KW_STRING;}
 "readLine" {return KW_READLINE;}
+"println" {return KW_PRINTLN;}
 "print" {return KW_PRINT;}
 {LETTER}({LETTER}|{DIGIT})* { return TK_ID; }
 {DIGIT}+"."{DIGIT}+ { return TK_LIT_FLOAT; }
 {DIGIT}+ { return TK_LIT_INT; }
-"\""[^']{0,1}"\"" {return TK_LIT_CHAR;}/*Char*/
-"\""[^']*"\"" {return TK_LIT_STRING;}/*Cadena/string*/
+"'"[^']{0,1}"'" {return TK_LIT_CHAR;}/*Char*/
+"\""[^"]*"\"" {return TK_LIT_STRING;}/*Cadena/string*/
 [\t \n \r] {/*ignore*/}
 . {printf("Caracter invalido %c en la linea %d\n",yytext[0],yylineno);return -1;}
 

@@ -19,11 +19,15 @@ fun main(args: Array<String>) {
 }
 
 
-fun bubbleSort(arr:IntArray):IntArray{
+fun bubbleSort():IntArray{
+    val arr = IntArray(5)
+    arr[0] = 1
+    arr[1] = 2
+
     var swap = true
     while(swap){
         swap = false
-        for(i in 0 until arr.size-1){
+        for(i in 0 until 5){
             if(arr[i] > arr[i+1]){
                 val temp = arr[i]
                 arr[i] = arr[i+1]
@@ -38,4 +42,4 @@ fun bubbleSort(arr:IntArray):IntArray{
 
 fun main(args: Array<String>) {
     val list = bubbleSort(intArrayOf(2,15,1,8,4))
-    for (k in list) print("$k ")
+    for (k in list) print("hola ", k, " mundo")
