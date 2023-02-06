@@ -1,13 +1,22 @@
 fun main(args: Array<String>) {
 
-    val year = 1900
+    println("Hola mundo")
+
+    val year : Int = 1900;
 
     var leap: Boolean = false
 
-    val id: String = "Angella"
+    val id: String = "Angella"   
+    
+    val id3: String = "Angella";
 
-    println("Hola mundo")
+    println(1>0)
 
-    print("Holiss jeje")
+    val x = 2*3;
+
+   val id4: String = "Andrea";
+
+   var id2 = "Nicole"
+
 
 }

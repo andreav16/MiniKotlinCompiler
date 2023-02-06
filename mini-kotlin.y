@@ -18,37 +18,42 @@
 
 %%
 
-program: function-main
-        | /* epsilon */ ;
-
 function-main: KW_FUN KW_MAIN '(' KW_ARGS ':' KW_ARRAY '<' KW_STRING '>' ')' block
                 ;
 
 block: '{' decls_stmts '}' ;
 
-decls_stmts: decls stmts 
-            | /**/
+decls_stmts: decls_or_stmts decls_stmts
+            | /*epsilon*/
             ;
 
-decls: decls decl
-    | decl
-    ;
+decls_or_stmts: decl
+              | stmt
+              ;
 
-decl: KW_VAL TK_ID '=' literal
-    | KW_VAR TK_ID '=' literal
-    | KW_VAL TK_ID ':' type '=' literal 
-    | KW_VAR TK_ID ':' type '=' literal
+
+decl: KW_VAL TK_ID '=' expression
+    | KW_VAR TK_ID '=' expression
+    | KW_VAL TK_ID ':' type '=' expression 
+    | KW_VAR TK_ID ':' type '=' expression
     | KW_VAL TK_ID
     | KW_VAR TK_ID
+    | KW_VAL TK_ID '=' expression ';'
+    | KW_VAR TK_ID '=' expression ';'
+    | KW_VAL TK_ID ':' type '=' expression ';'
+    | KW_VAR TK_ID ':' type '=' expression ';'
+    | KW_VAL TK_ID ';'
+    | KW_VAR TK_ID ';'
     ;
 
-stmts: stmts stmt
-      | stmt
-      ;
-
-stmt: KW_PRINT '(' expression ')'
-    | KW_PRINTLN '(' expression ')'
+stmt: print_stmt
     ;
+
+print_stmt: KW_PRINT '(' expression ')'
+          | KW_PRINTLN '(' expression ')'
+          |KW_PRINT '(' expression ')' ';'
+          | KW_PRINTLN '(' expression ')' ';'
+         ;
 
 expression: expression '>' arithmetic_expression
         | expression '<' arithmetic_expression 
