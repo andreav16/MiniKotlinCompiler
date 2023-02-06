@@ -51,7 +51,7 @@ stmt: print_stmt
 
 print_stmt: KW_PRINT '(' expression ')'
           | KW_PRINTLN '(' expression ')'
-          |KW_PRINT '(' expression ')' ';'
+          | KW_PRINT '(' expression ')' ';'
           | KW_PRINTLN '(' expression ')' ';'
          ;
 
