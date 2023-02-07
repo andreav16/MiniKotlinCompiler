@@ -1,22 +1,25 @@
 fun main(args: Array<String>) {
 
-    println("Hola mundo")
-
-    val year : Int = 1900;
-
-    var leap: Boolean = false
-
-    val id: String = "Angella"   
-    
-    val id3: String = "Angella";
-
+var max: Int
+if (a < b){  
+    max = a
     println(1>0)
-
     val x = 2*3;
+}
 
-   val id4: String = "Andrea";
+var max = a
+if (a < b) max = b
 
-   var id2 = "Nicole"
+if (a > b) {
+    max = a
+} else {
+    max = b
+}
 
+if (a > b) {
+    print("Choose a")
+} else {
+    print("Choose b")
+}
 
 }

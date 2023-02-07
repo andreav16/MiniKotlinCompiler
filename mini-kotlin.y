@@ -36,6 +36,7 @@ decl: KW_VAL TK_ID '=' expression
     | KW_VAR TK_ID '=' expression
     | KW_VAL TK_ID ':' type '=' expression 
     | KW_VAR TK_ID ':' type '=' expression
+    | KW_VAR TK_ID ':' type 
     | KW_VAL TK_ID
     | KW_VAR TK_ID
     | KW_VAL TK_ID '=' expression ';'
@@ -47,7 +48,18 @@ decl: KW_VAL TK_ID '=' expression
     ;
 
 stmt: print_stmt
+    | if_stmt
+    | assignation_stmt
     ;
+
+assignation_stmt: TK_ID '=' expression
+                | TK_ID '=' if_stmt
+;
+
+if_stmt: KW_IF '(' expression ')' '{' decls_stmts '}'
+       | KW_IF '(' expression ')' decls_or_stmts
+       | KW_IF '(' expression ')' '{' decls_stmts '}' KW_ELSE '{' decls_stmts '}'
+;
 
 print_stmt: KW_PRINT '(' expression ')'
           | KW_PRINTLN '(' expression ')'
