@@ -19,6 +19,7 @@
 %%
 
 function-main: KW_FUN KW_MAIN '(' KW_ARGS ':' KW_ARRAY '<' KW_STRING '>' ')' block
+             | KW_FUN KW_MAIN '(' ')' block
                 ;
 
 block: '{' decls_stmts '}' ;

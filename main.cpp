@@ -3,7 +3,8 @@
 extern FILE* yyin;
 extern char* yytext;
 extern int yylineno;
-int yyparse();
+//int yyparse();
+int yylex();
 
 int main(int argc, char* argv[]){
 
@@ -20,14 +21,14 @@ int main(int argc, char* argv[]){
 
     yyin = f; //asignarle a la variable de input stream el archivo
 
-    yyparse();
-    /*
+  //  yyparse();
+   
     int currentToken = yylex();
     while(currentToken != 0){
         printf("Lexema: %s, Token: %d, Linea:%d\n", yytext, currentToken, yylineno);
         currentToken = yylex();
     }
-    */
+    
     
     
     return 0;

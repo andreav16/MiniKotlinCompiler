@@ -1,25 +1,13 @@
-fun main(args: Array<String>) {
-
-var max: Int
-if (a < b){  
-    max = a
-    println(1>0)
-    val x = 2*3;
+fun myFunction(fname: String) {
+  println(fname + " Doe")
 }
 
-var max = a
-if (a < b) max = b
-
-if (a > b) {
-    max = a
-} else {
-    max = b
+fun main() {
+  myFunction("John")
+  myFunction("Jane")
+  myFunction("George")
 }
-
-if (a > b) {
-    print("Choose a")
-} else {
-    print("Choose b")
-}
-
-}
+  
+// John Doe
+// Jane Doe
+// George Doe
