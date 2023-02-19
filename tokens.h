@@ -92,13 +92,14 @@ extern int yydebug;
     KW_CHAR = 293,                 /* KW_CHAR  */
     KW_BOOLEAN = 294,              /* KW_BOOLEAN  */
     KW_STRING = 295,               /* KW_STRING  */
-    KW_PRINTLN = 296,              /* KW_PRINTLN  */
-    KW_READLINE = 297,             /* KW_READLINE  */
-    KW_PRINT = 298,                /* KW_PRINT  */
-    TK_LIT_CHAR = 299,             /* TK_LIT_CHAR  */
-    TK_LIT_STRING = 300,           /* TK_LIT_STRING  */
-    KW_MAIN = 301,                 /* KW_MAIN  */
-    KW_ARGS = 302                  /* KW_ARGS  */
+    KW_UNTIL = 296,                /* KW_UNTIL  */
+    KW_PRINTLN = 297,              /* KW_PRINTLN  */
+    KW_READLINE = 298,             /* KW_READLINE  */
+    KW_PRINT = 299,                /* KW_PRINT  */
+    TK_LIT_CHAR = 300,             /* TK_LIT_CHAR  */
+    TK_LIT_STRING = 301,           /* TK_LIT_STRING  */
+    KW_MAIN = 302,                 /* KW_MAIN  */
+    KW_ARGS = 303                  /* KW_ARGS  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif

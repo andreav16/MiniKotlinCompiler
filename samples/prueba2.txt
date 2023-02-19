@@ -12,7 +12,7 @@ println("-a = $result")
 booleanResult = !b
 println("!b = $booleanResult")
 
---c
+var y = --c
 println("--c = $c");
 
 }

@@ -6,7 +6,7 @@ fun main(args: Array<String>) {
     val result: Boolean
 
     // result is true is a is largest
-    result = (a>b) && (a>c) // result = (a>b) and (a>c)
+    result = (a>b) && (a>c) || (a==c)// result = (a>b) and (a>c)
     println(result)
 }
 

@@ -1,8 +1,9 @@
 %option noyywrap
 %option yylineno
 %{
-  #include "tokens.h"
-
+    #include "tokens.h"
+    int line = 1;
+    int column = 0;
 %}
 
 LETTER [a-zA-Z]
@@ -46,6 +47,7 @@ DIGIT [0-9]
 "false" {return KW_FALSE;}
 "true" {return KW_TRUE;}
 "for" {return KW_FOR;}
+"until" {return KW_UNTIL;}
 "fun" {return KW_FUN;}
 "main" {return KW_MAIN;}
 "args" {return KW_ARGS;}
@@ -74,7 +76,8 @@ DIGIT [0-9]
 {DIGIT}+ { return TK_LIT_INT; }
 "'"[^']{0,1}"'" {return TK_LIT_CHAR;}/*Char*/
 "\""[^"]*"\"" {return TK_LIT_STRING;}/*Cadena/string*/
-[\t \n \r] {/*ignore*/}
+[ \t] { column++; }
+[ \n \r] { line++; }
 . {printf("Caracter invalido %c en la linea %d\n",yytext[0],yylineno);return -1;}
 
 %%
