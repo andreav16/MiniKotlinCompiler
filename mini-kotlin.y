@@ -27,6 +27,7 @@
 program: function-main
         ;
 
+
 function-main: KW_FUN KW_MAIN '(' KW_ARGS ':' KW_ARRAY '<' KW_STRING '>' ')' block
              | KW_FUN KW_MAIN '(' ')' block
                 ;
@@ -49,6 +50,12 @@ decl_inline: variable_decl
         |   variable_decl ';'
         |   variable_decl '=' expression
         |   variable_decl '=' expression ';'
+        |   variable_decl '=' array_decl
+        ;
+
+array_decl: KW_ARRAY '<' type '>' '(' TK_LIT_INT ')' '{' literal '}'
+          | KW_ARRAY '<' type '>' '(' TK_LIT_INT ')' '{' literal '}' ';'
+            ;
 
 variable_decl: TK_ID ':' type 
             | TK_ID
@@ -63,7 +70,12 @@ stmt: print_stmt
 
 assignation_stmt: TK_ID '=' expression
                 | TK_ID '=' if_stmt
+                | TK_ID array_assignation
 ;
+
+array_assignation: '[' arithmetic_expression ']' '=' arithmetic_expression
+                 | '[' arithmetic_expression ']' '=' arithmetic_expression ';'
+                ;
 
 if_stmt: KW_IF '(' expression ')' block
        | KW_IF '(' expression ')' decls_or_stmts
@@ -77,7 +89,19 @@ print_stmt: KW_PRINT '(' expression ')'
          ;
 
 loop_stmt: for_stmt
+         | while_stmt
+         | do_while_stmt
         ;
+
+while_stmt: KW_WHILE '(' expression ')' block 
+          | KW_WHILE '(' expression ')' stmt 
+;
+
+do_while_stmt: KW_DO block KW_WHILE '(' expression ')' 
+             | KW_DO stmt KW_WHILE '(' expression ')' 
+             | KW_DO block KW_WHILE '(' expression ')' ';'
+             | KW_DO stmt KW_WHILE '(' expression ')' ';'
+             ;
 
 for_stmt: KW_FOR '(' variable_decl KW_IN expression KW_UNTIL expression ')' block 
     | KW_FOR '(' variable_decl KW_IN expression KW_UNTIL expression ')' stmt
