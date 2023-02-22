@@ -56,6 +56,7 @@ DIGIT [0-9]
 "return" {return KW_RETURN;}
 "var" {return KW_VAR;}
 "continue" {return KW_CONTINUE;}
+"arrayOf" {return KW_ARRAYOF;}
 "Array" {return KW_ARRAY;}
 "when" {return KW_WHEN;}
 "is" {return KW_IS;}

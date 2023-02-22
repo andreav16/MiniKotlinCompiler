@@ -14,7 +14,7 @@
 %token TK_INCREMENT TK_DECREMENT TK_AND TK_OR TK_EQUAL TK_NOT_EQUAL
 %token TK_LESS_EQUAL TK_GT_EQUAL TK_RANGE
 %token KW_BREAK KW_DO KW_ELSE KW_FALSE KW_TRUE KW_FOR KW_FUN KW_IF KW_IN
-%token KW_RETURN KW_VAR KW_CONTINUE KW_ARRAY KW_WHEN KW_IS KW_NULL KW_VAL
+%token KW_RETURN KW_VAR KW_CONTINUE KW_ARRAYOF KW_ARRAY KW_WHEN KW_IS KW_NULL KW_VAL
 %token KW_WHILE KW_CONST KW_INT KW_FLOAT KW_CHAR KW_BOOLEAN KW_STRING KW_UNTIL
 %token KW_PRINTLN KW_READLINE KW_PRINT TK_LIT_CHAR TK_LIT_STRING KW_MAIN KW_ARGS
 
@@ -24,13 +24,18 @@
 
 %%
 
-program: function-main
+program: functions
         ;
 
+functions: func functions
+        | /*eps*/
+        ;
 
-function-main: KW_FUN KW_MAIN '(' KW_ARGS ':' KW_ARRAY '<' KW_STRING '>' ')' block
-             | KW_FUN KW_MAIN '(' ')' block
-                ;
+func: KW_FUN TK_ID '(' params ')' ':' func_type block
+    | KW_FUN TK_ID '(' params ')' block
+    | KW_FUN KW_MAIN '(' KW_ARGS ':' KW_ARRAY '<' KW_STRING '>' ')' block
+    | KW_FUN KW_MAIN '(' ')' block
+    ;
 
 block: '{' decls_stmts '}' ;
 
@@ -51,11 +56,32 @@ decl_inline: variable_decl
         |   variable_decl '=' expression
         |   variable_decl '=' expression ';'
         |   variable_decl '=' array_decl
+        |   variable_decl '=' TK_ID '(' paramsCall ')'
         ;
 
 array_decl: KW_ARRAY '<' type '>' '(' TK_LIT_INT ')' '{' literal '}'
           | KW_ARRAY '<' type '>' '(' TK_LIT_INT ')' '{' literal '}' ';'
             ;
+
+params: TK_ID ':' type ',' params
+        | TK_ID ':' type
+        | array_params params
+        ;
+
+array_params: TK_ID ':' KW_ARRAY '<' type '>' ','
+        | TK_ID ':' KW_ARRAY '<' type '>'
+        ;
+
+paramsCall: TK_ID ',' paramsCall
+        | TK_ID
+        | literal ',' paramsCall
+        | literal
+        | arrayFuncCall_params paramsCall
+        ;
+
+arrayFuncCall_params: KW_ARRAYOF '<' type '>' '(' func_CallLiterals ')' ','
+        | KW_ARRAYOF '<' type '>' '(' func_CallLiterals ')' 
+        ;
 
 variable_decl: TK_ID ':' type 
             | TK_ID
@@ -66,6 +92,8 @@ stmt: print_stmt
     | assignation_stmt
     | comment_stmt
     | loop_stmt
+    | returnORbreak_stmt
+    | methodcall_stmt
     ;
 
 assignation_stmt: TK_ID '=' expression
@@ -80,7 +108,7 @@ array_assignation: '[' arithmetic_expression ']' '=' arithmetic_expression
 if_stmt: KW_IF '(' expression ')' block
        | KW_IF '(' expression ')' decls_or_stmts
        | KW_IF '(' expression ')' block KW_ELSE block
-;
+        ;
 
 print_stmt: KW_PRINT '(' expression ')'
           | KW_PRINTLN '(' expression ')'
@@ -111,6 +139,15 @@ for_stmt: KW_FOR '(' variable_decl KW_IN expression KW_UNTIL expression ')' bloc
             
 comment_stmt: TK_LINE_COMMENT | TK_BLOCK_COMMENT;
 
+returnORbreak_stmt: KW_RETURN expression ';'
+            | KW_RETURN expression
+            | KW_BREAK ';'
+            | KW_BREAK
+            ; 
+
+methodcall_stmt: TK_ID '(' paramsCall ')'
+                ;
+                
 //EXPRESSIONS
 
 expression: expression TK_OR comparison_expression
@@ -164,11 +201,21 @@ literal: TK_LIT_CHAR
        | KW_FALSE
        ;
 
+func_CallLiterals: literal ',' func_CallLiterals
+                | literal
+                ;
+
 type: KW_INT
     | KW_FLOAT
     | KW_BOOLEAN
     | KW_CHAR
     | KW_STRING
     ;
+
+func_type: type 
+    | KW_ARRAY '<' type '>'
+    ;
+
+
 
 %%
