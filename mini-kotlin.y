@@ -106,7 +106,7 @@ array_assignation: '[' arithmetic_expression ']' '=' arithmetic_expression
                 ;
 
 if_stmt: KW_IF '(' expression ')' block
-       | KW_IF '(' expression ')' decls_or_stmts
+       | KW_IF '(' expression ')' stmt
        | KW_IF '(' expression ')' block KW_ELSE block
         ;
 

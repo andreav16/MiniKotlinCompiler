@@ -30,7 +30,11 @@ fun main(args: Array<String>) {
     }
 
     if (found)
+    {
         println("$toFind is found.")
+    }
     else
+    {
         println("$toFind is not found.")
+    }
 }
