@@ -66,6 +66,7 @@ array_decl: KW_ARRAY '<' type '>' '(' TK_LIT_INT ')' '{' literal '}'
 params: TK_ID ':' type ',' params
         | TK_ID ':' type
         | array_params params
+        | /*epsilon*/
         ;
 
 array_params: TK_ID ':' KW_ARRAY '<' type '>' ','
