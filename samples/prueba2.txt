@@ -13,6 +13,7 @@ booleanResult = !b
 println("!b = $booleanResult")
 
 var y = --c
+c--
 println("--c = $c");
 
 }

@@ -1553,4 +1553,4 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 228 "mini-kotlin.y"
+#line 226 "mini-kotlin.y"
