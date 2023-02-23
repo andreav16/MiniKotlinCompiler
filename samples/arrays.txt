@@ -10,6 +10,7 @@ fun main() {
     while (x > 0) {var x= 1}
 do{
     var x= 1
+    x++;
 }while (x > 0); // y is visible here!
 
  var swap = true

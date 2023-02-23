@@ -94,7 +94,14 @@ stmt: print_stmt
     | loop_stmt
     | returnORbreak_stmt
     | methodcall_stmt
+    | incre_decre_stmt
     ;
+
+incre_decre_stmt: TK_ID TK_INCREMENT
+                | TK_ID TK_INCREMENT ';'
+                | TK_ID TK_DECREMENT 
+                | TK_ID TK_DECREMENT ';'
+                ;
 
 assignation_stmt: TK_ID '=' expression
                 | TK_ID '=' if_stmt
@@ -215,7 +222,5 @@ type: KW_INT
 func_type: type 
     | KW_ARRAY '<' type '>'
     ;
-
-
 
 %%
