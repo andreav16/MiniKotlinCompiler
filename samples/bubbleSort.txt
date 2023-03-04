@@ -1,4 +1,4 @@
-fun bubbleSortWithSteps(numbers: IntArray) {
+fun bubbleSortWithSteps(numbers:Array<Int>) {
     println("Initial numbers: [%s]".format(numbers.joinToString(separator = ", ")))
     for (pass in 0 until (numbers.size - 1)) {
         // A single pass of bubble sort
