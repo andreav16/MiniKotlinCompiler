@@ -7,3 +7,13 @@ enum PrimitiveType{
     NONE = 6,
     VOID = 7
 };
+
+enum UnaryOperator{
+    NOT, // 0
+    NEG // 1
+};
+
+enum IncreDecreOperator{
+    INCRE, // 0
+    DECRE // 1
+};

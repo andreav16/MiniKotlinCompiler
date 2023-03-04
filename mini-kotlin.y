@@ -37,8 +37,8 @@
 %token<char_t> TK_LIT_CHAR
 %token<boolean_t> KW_TRUE KW_FALSE
 
-%type<statement_t> stmt print_stmt if_stmt assignation_stmt comment_stmt loop_stmt returnORbreak_stmt methodcall_stmt incre_decre_stmt
-%type<expr_t> expression
+%type<statement_t> stmt print_stmt if_stmt assignation_stmt comment_stmt loop_stmt returnORbreak_stmt methodcall_stmt incre_decre_stmt for_stmt
+%type<expr_t> literal factor unary_expression incre_decre_expression term arithmetic_expression comparison_expression expression
 %type<var_declaration_t> variable_decl
 
 %precedence TK_EQUAL TK_NOT_EQUAL
@@ -179,55 +179,56 @@ methodcall_stmt: TK_ID '(' paramsCall ')'
                 
 //EXPRESSIONS
 
-expression: expression TK_OR comparison_expression
-        | expression TK_AND comparison_expression  
-        | expression TK_EQUAL comparison_expression 
-        | expression TK_NOT_EQUAL comparison_expression
-        | comparison_expression
+expression: expression TK_OR comparison_expression { $$ = new OrExpression($1, $3, line, column); }
+        | expression TK_AND comparison_expression  { $$ = new AndExpression($1, $3, line, column); }
+        | expression TK_EQUAL comparison_expression { $$ = new EqExpression($1, $3, line, column); }
+        | expression TK_NOT_EQUAL comparison_expression { $$ = new NeqExpression($1, $3, line, column); }
+        | comparison_expression { $$ = $1; }
         ;
 
-comparison_expression: comparison_expression '>' arithmetic_expression
-        | comparison_expression '<' arithmetic_expression 
-        | comparison_expression TK_LESS_EQUAL arithmetic_expression   
-        | comparison_expression TK_GT_EQUAL arithmetic_expression 
-        | arithmetic_expression
+comparison_expression: comparison_expression '>' arithmetic_expression { $$ = new GtExpression($1, $3, line, column); }
+        | comparison_expression '<' arithmetic_expression { $$ = new LtExpression($1, $3, line, column); }
+        | comparison_expression TK_LESS_EQUAL arithmetic_expression  { $$ = new LteExpression($1, $3, line, column); }
+        | comparison_expression TK_GT_EQUAL arithmetic_expression { $$ = new GteExpression($1, $3, line, column); } 
+        | arithmetic_expression { $$ = $1; }
         ;
 
-arithmetic_expression: arithmetic_expression '+' term
-        | arithmetic_expression '-' term
-        | arithmetic_expression TK_RANGE term
-        | term
+arithmetic_expression: arithmetic_expression '+' term { $$ = new AddExpression($1, $3, line, column); }
+        | arithmetic_expression '-' term { $$ = new SubExpression($1, $3, line, column); }
+        | arithmetic_expression TK_RANGE term { $$ = new RangeExpression($1, $3, line, column); }
+        | term { $$ = $1; }
         ;
 
-term: term '*' unary_expression
-    | term '/' unary_expression
-    | term '%' unary_expression
-    | unary_expression
+term: term '*' unary_expression { $$ = new MultExpression($1, $3, line, column); }
+    | term '/' unary_expression { $$ = new DivExpression($1, $3, line, column); }
+    | term '%' unary_expression { $$ = new ModExpression($1, $3, line, column); }
+    | unary_expression { $$ = $1; }
     ;
 
-unary_expression: '!' factor
-                | '-' factor
-                | incre_decre_expression
-                | factor 
+unary_expression: '!' factor  { $$ = new UnaryExpression(NOT, $2, line, column); }
+                | '-' factor { $$ = new UnaryExpression(NEG, $2, line, column); }
+                | incre_decre_expression { $$ = $1; }
+                | factor { $$ = $1; }
                 ;
 
-incre_decre_expression: TK_INCREMENT factor
-                | TK_DECREMENT factor
-                | factor TK_INCREMENT
-                | factor TK_DECREMENT
+incre_decre_expression: TK_INCREMENT factor  { $$ = new IncreDecreExpression(INCRE, $2, line, column); }
+                | TK_DECREMENT factor { $$ = new IncreDecreExpression(DECRE, $2, line, column); } 
+                | factor TK_INCREMENT { $$ = new IncreDecreExpression(INCRE, $1, line, column); }
+                | factor TK_DECREMENT { $$ = new IncreDecreExpression(DECRE, $1, line, column); }
 
-factor: '(' expression ')'
-    | literal
-    | TK_ID
-    | TK_ID '[' expression ']' //array access
+factor: '(' expression ')' { $$ = $2; }
+    | literal { $$ = $1; }
+    | TK_ID { $$ = new IdExpression($1, line, column); }
+    | TK_ID '[' expression ']' { $$ = new ArrayAccessExpression(new IdExpression($1, line, column), $3, line, column); } //array access
+    // mover MethodCallExpression a aquí | TK_ID '(' paramsCall ')'
     ;
 
-literal: TK_LIT_CHAR
-       | TK_LIT_STRING
-       | TK_LIT_INT
-       | TK_LIT_FLOAT
-       | KW_TRUE
-       | KW_FALSE
+literal: TK_LIT_CHAR { $$ = new CharExpression($1, line, column); }
+       | TK_LIT_STRING { $$ = new StringExpression($1, line, column); }
+       | TK_LIT_INT { $$ = new IntExpression($1, line, column); }
+       | TK_LIT_FLOAT { $$ = new FloatExpression($1, line, column); }
+       | KW_TRUE { $$ = new BooleanExpression(true, line, column); }
+       | KW_FALSE { $$ = new BooleanExpression(false, line, column); }
        ;
 
 func_CallLiterals: literal ',' func_CallLiterals
