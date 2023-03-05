@@ -22,6 +22,8 @@
         Statement * statement_t;
         Expression * expr_t;
         VarDeclarationStatement * var_declaration_t;
+        list<Expression *> * expr_list_t;
+        ComplexType * type_t;
 }
 
 %token TK_INCREMENT TK_DECREMENT TK_AND TK_OR TK_EQUAL TK_NOT_EQUAL
@@ -38,8 +40,12 @@
 %token<boolean_t> KW_TRUE KW_FALSE
 
 %type<statement_t> stmt print_stmt if_stmt assignation_stmt comment_stmt loop_stmt returnORbreak_stmt methodcall_stmt incre_decre_stmt for_stmt
+%type<statement_t> block while_stmt do_while_stmt
 %type<expr_t> literal factor unary_expression incre_decre_expression term arithmetic_expression comparison_expression expression
 %type<var_declaration_t> variable_decl
+%type<int_t> type
+%type<expr_list_t> paramsCall
+%type<type_t> func_type
 
 %precedence TK_EQUAL TK_NOT_EQUAL
 %precedence TK_AND
@@ -79,7 +85,6 @@ decl_inline: variable_decl
         |   variable_decl '=' expression
         |   variable_decl '=' expression ';'
         |   variable_decl '=' array_decl
-        |   variable_decl '=' TK_ID '(' paramsCall ')'
         ;
 
 array_decl: KW_ARRAY '<' type '>' '(' TK_LIT_INT ')' '{' literal '}'
@@ -107,8 +112,8 @@ arrayFuncCall_params: KW_ARRAYOF '<' type '>' '(' func_CallLiterals ')' ','
         | KW_ARRAYOF '<' type '>' '(' func_CallLiterals ')' 
         ;
 
-variable_decl: TK_ID ':' type { $$ = new VarDeclarationStatement($1,$3,line, column);}
-            | TK_ID{ $$ = new VarDeclarationStatement($1,NULL,line, column);}
+variable_decl: TK_ID ':' func_type { $$ = new VarDeclarationStatement($1,$3,line, column);}
+            | TK_ID { $$ = new VarDeclarationStatement($1,NULL,line, column);}
             ;
 
 stmt: print_stmt { $$ = $1;}
@@ -116,9 +121,9 @@ stmt: print_stmt { $$ = $1;}
     | assignation_stmt { $$ = $1;}
     | comment_stmt { $$ = $1;}
     | loop_stmt { $$ = $1;}
-    | returnORbreak_stmt
-    | methodcall_stmt
-    | incre_decre_stmt
+    | returnORbreak_stmt { $$ = $1;}
+    | methodcall_stmt { $$ = $1;}
+    | incre_decre_stmt { $$ = $1;} 
     ;
 
 incre_decre_stmt: TK_ID TK_INCREMENT
@@ -168,13 +173,13 @@ comment_stmt: TK_LINE_COMMENT { $$ = new CommentStatement($1,line, column);}
             | TK_BLOCK_COMMENT { $$ = new CommentStatement($1,line, column);}
             ;
 
-returnORbreak_stmt: KW_RETURN expression ';'
-            | KW_RETURN expression
-            | KW_BREAK ';'
-            | KW_BREAK
+returnORbreak_stmt: KW_RETURN expression ';' { $$ = new ReturnStatement($2, line, column);}
+            | KW_RETURN expression { $$ = new ReturnStatement($2, line, column);}
+            | KW_BREAK ';' { $$ = new ReturnStatement(NULL, line, column);}
+            | KW_BREAK { $$ = new ReturnStatement(NULL, line, column);}
             ; 
 
-methodcall_stmt: TK_ID '(' paramsCall ')'
+methodcall_stmt: TK_ID '(' paramsCall ')' { $$ = new ExpressionStatement(new MethodCallExpression(new IdExpression($1,line,column),$3, line,column),line,column);}
                 ;
                 
 //EXPRESSIONS
@@ -220,6 +225,7 @@ factor: '(' expression ')' { $$ = $2; }
     | literal { $$ = $1; }
     | TK_ID { $$ = new IdExpression($1, line, column); }
     | TK_ID '[' expression ']' { $$ = new ArrayAccessExpression(new IdExpression($1, line, column), $3, line, column); } //array access
+    | TK_ID '(' paramsCall ')' { $$ = new MethodCallExpression(new IdExpression($1,line,column),$3, line,column); }
     // mover MethodCallExpression a aquí | TK_ID '(' paramsCall ')'
     ;
 
@@ -235,15 +241,15 @@ func_CallLiterals: literal ',' func_CallLiterals
                 | literal
                 ;
 
-type: KW_INT
-    | KW_FLOAT
-    | KW_BOOLEAN
-    | KW_CHAR
-    | KW_STRING
+type: KW_INT { $$ = INT; }
+    | KW_FLOAT { $$ = FLOAT;}
+    | KW_BOOLEAN { $$ = BOOLEAN;}
+    | KW_CHAR { $$ = CHAR;}
+    | KW_STRING { $$ = STRING;}
     ;
 
-func_type: type 
-    | KW_ARRAY '<' type '>'
+func_type: type { $$ = new ComplexType((PrimitiveType)$1, false); }
+    | KW_ARRAY '<' type '>' { $$ = new ArrayType((PrimitiveType)$3);}
     ;
 
 %%

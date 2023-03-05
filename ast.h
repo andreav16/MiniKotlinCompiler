@@ -36,14 +36,11 @@ public:
 class ArrayType : public ComplexType
 {
 public:
-    ArrayType(int start, int end, PrimitiveType primitiveType)
+    ArrayType(PrimitiveType primitiveType)
         : ComplexType(primitiveType, true)
     {
-        this->start = start;
-        this->end = end;
         this->primitiveType = primitiveType;
     }
-    int start, end;
     PrimitiveType primitiveType;
 };
 
@@ -307,3 +304,21 @@ public:
     void print();
 };
 
+class ReturnStatement: public Statement{
+    public:
+        ReturnStatement(Expression * expression, int line, int column):Statement(line, column){
+            this->expression = expression;
+        }
+        Expression * expression;
+        void print();
+};
+
+class ExpressionStatement : public Statement{
+    public:
+        ExpressionStatement(Expression * expr, int line, int column)
+            : Statement(line, column){
+            this->expr = expr;
+        }
+        Expression * expr;
+        void print();
+};
