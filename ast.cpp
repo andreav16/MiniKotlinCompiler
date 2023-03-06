@@ -73,6 +73,16 @@ PRINT_BINARY_EXPRESSION(And);
 PRINT_BINARY_EXPRESSION(Eq);
 PRINT_BINARY_EXPRESSION(Neq);
 
+void VarDeclarationStatement::print()
+{
+    cout << "Var Declaration Statement line: " << this->line << " column: " << this->column << endl;
+}
+
+void VarDeclAssignStatement::print()
+{
+    cout << "Var decl and assign Statement line: " << this->line << " column: " << this->column << endl;
+}
+
 void PrintStatement::print()
 {
     cout << "Print Statement line: " << this->line << " column: " << this->column << endl;
@@ -106,4 +116,19 @@ void ForStatement::print()
 void ReturnStatement::print()
 {
     cout << " Return Statement line: " << this->line << " column: " << this->column << endl;
+}
+
+void ExpressionStatement::print()
+{
+    cout << " Expression Statement line: " << this->line << " column: " << this->column << endl;
+}
+
+void IncreDecreStatement::print()
+{
+    cout << " Incre/decre Statement line: " << this->line << " column: " << this->column << endl;
+}
+
+void WhileStatement::print()
+{
+    cout << " While Statement line: " << this->line << " column: " << this->column << endl;
 }

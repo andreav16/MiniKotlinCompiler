@@ -231,6 +231,20 @@ public:
     void print();
 };
 
+class VarDeclAssignStatement : public Declaration
+{
+public:
+    VarDeclAssignStatement(VarDeclarationStatement * decl, Expression * expr, int line, int column) 
+        : Declaration(line, column)
+    {
+        this->decl = decl;
+        this->expr = expr;
+    }
+    VarDeclarationStatement * decl;
+    Expression * expr;
+    void print();
+};
+
 /*4. STATEMENTS*/
 
 class PrintStatement : public Statement
@@ -320,5 +334,27 @@ class ExpressionStatement : public Statement{
             this->expr = expr;
         }
         Expression * expr;
+        void print();
+};
+
+class IncreDecreStatement: public Statement{
+    public:
+        IncreDecreStatement(IncreDecreExpression * expr, int line, int column)
+            : Statement(line, column){
+                this->expr = expr;
+        }
+        IncreDecreExpression * expr;
+        void print();
+};
+
+class WhileStatement: public Statement{
+    public:
+        WhileStatement(Expression * expr, Statement * stmt, int line, int column):
+            Statement(line, column){
+                this->expr = expr;
+                this->stmt = stmt;
+        }
+        Expression * expr;
+        Statement * stmt;
         void print();
 };

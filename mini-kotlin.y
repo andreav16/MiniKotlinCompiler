@@ -21,6 +21,7 @@
         char char_t;
         Statement * statement_t;
         Expression * expr_t;
+        Declaration * decl_t;
         VarDeclarationStatement * var_declaration_t;
         list<Expression *> * expr_list_t;
         ComplexType * type_t;
@@ -42,6 +43,7 @@
 %type<statement_t> stmt print_stmt if_stmt assignation_stmt comment_stmt loop_stmt returnORbreak_stmt methodcall_stmt incre_decre_stmt for_stmt
 %type<statement_t> block while_stmt do_while_stmt
 %type<expr_t> literal factor unary_expression incre_decre_expression term arithmetic_expression comparison_expression expression
+%type<decl_t> decl decl_inline
 %type<var_declaration_t> variable_decl
 %type<int_t> type
 %type<expr_list_t> paramsCall
@@ -76,14 +78,14 @@ decls_or_stmts: decl
               | stmt
               ;
 
-decl: KW_VAL decl_inline
-    | KW_VAR decl_inline
+decl: KW_VAL decl_inline { $$ = $2; }
+    | KW_VAR decl_inline { $$ = $2; }
     ;
 
-decl_inline: variable_decl
-        |   variable_decl ';'
-        |   variable_decl '=' expression
-        |   variable_decl '=' expression ';'
+decl_inline: variable_decl { $$ = $1; }
+        |   variable_decl ';' { $$ = $1; }
+        |   variable_decl '=' expression { $$ = new VarDeclAssignStatement($1, $3, line, column); }
+        |   variable_decl '=' expression ';' { $$ = new VarDeclAssignStatement($1, $3, line, column); }
         |   variable_decl '=' array_decl
         ;
 
@@ -101,10 +103,10 @@ array_params: TK_ID ':' KW_ARRAY '<' type '>' ','
         | TK_ID ':' KW_ARRAY '<' type '>'
         ;
 
-paramsCall: TK_ID ',' paramsCall
-        | TK_ID
-        | literal ',' paramsCall
-        | literal
+paramsCall: TK_ID ',' paramsCall { $$ = $3; $$->push_back(new IdExpression($1, line, column)); }
+        | TK_ID { $$ = new list<Expression *>; $$->push_back(new IdExpression($1, line, column)); }
+        | literal ',' paramsCall { $$ = $3; $$->push_back($1); }
+        | literal { $$ = new list<Expression *>; $$->push_back($1); }
         | arrayFuncCall_params paramsCall
         ;
 
@@ -126,10 +128,10 @@ stmt: print_stmt { $$ = $1;}
     | incre_decre_stmt { $$ = $1;} 
     ;
 
-incre_decre_stmt: TK_ID TK_INCREMENT
-                | TK_ID TK_INCREMENT ';'
-                | TK_ID TK_DECREMENT 
-                | TK_ID TK_DECREMENT ';'
+incre_decre_stmt: TK_ID TK_INCREMENT { $$ = new IncreDecreStatement(new IncreDecreExpression(INCRE, new IdExpression($1, line, column), line, column), line, column); }
+                | TK_ID TK_INCREMENT ';' { $$ = new IncreDecreStatement(new IncreDecreExpression(INCRE, new IdExpression($1, line, column), line, column), line, column); }
+                | TK_ID TK_DECREMENT { $$ = new IncreDecreStatement(new IncreDecreExpression(DECRE, new IdExpression($1, line, column), line, column), line, column); }
+                | TK_ID TK_DECREMENT ';' { $$ = new IncreDecreStatement(new IncreDecreExpression(DECRE, new IdExpression($1, line, column), line, column), line, column); }
                 ;
 
 assignation_stmt: TK_ID '=' expression { $$ = new AssignationStatement($1, $3, NULL, line, column);}
@@ -153,14 +155,14 @@ loop_stmt: for_stmt { $$ = $1;}
          | do_while_stmt { $$ = $1;}
         ;
 
-while_stmt: KW_WHILE '(' expression ')' block 
-          | KW_WHILE '(' expression ')' stmt 
+while_stmt: KW_WHILE '(' expression ')' block { $$ = new WhileStatement($3, $5, line, column); }
+          | KW_WHILE '(' expression ')' stmt { $$ = new WhileStatement($3, $5, line, column); }
 ;
 
-do_while_stmt: KW_DO block KW_WHILE '(' expression ')' 
-             | KW_DO stmt KW_WHILE '(' expression ')' 
-             | KW_DO block KW_WHILE '(' expression ')' ';'
-             | KW_DO stmt KW_WHILE '(' expression ')' ';'
+do_while_stmt: KW_DO block KW_WHILE '(' expression ')' { $$ = new WhileStatement($5, $2, line, column); }
+             | KW_DO stmt KW_WHILE '(' expression ')' { $$ = new WhileStatement($5, $2, line, column); }
+             | KW_DO block KW_WHILE '(' expression ')' ';' { $$ = new WhileStatement($5, $2, line, column); }
+             | KW_DO stmt KW_WHILE '(' expression ')' ';' { $$ = new WhileStatement($5, $2, line, column); }
              ;
 
 for_stmt: KW_FOR '(' variable_decl KW_IN expression KW_UNTIL expression ')' block { $$ = new ForStatement($3,$5,$7,$9, line, column);}
