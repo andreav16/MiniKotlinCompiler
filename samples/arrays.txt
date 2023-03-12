@@ -6,19 +6,19 @@ fun main() {
     for(element in list){
         println(element)
     }
-     var x = 2;
-    while (x > 0) {var x= 1}
+     var x: Int = 2;
+    while (x > 0) {var x:Int= 1}
 do{
-    var x= 1
+    var x: Int= 1
     x++;
 }while (x > 0); // y is visible here!
 
- var swap = true
+ var swap: Boolean = true
     while(swap){
         swap = false
         for(i in 0 until size-1){
             if(arr[i] > arr[i+1]){
-                val temp = arr[i]
+                val temp: Int = arr[i]
                 arr[i] = arr[i+1]
                 arr[i + 1] = temp
 

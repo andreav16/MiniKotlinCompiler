@@ -1,6 +1,6 @@
 fun main() {
 
-    for (item: Int in ints) {
+    for (item in ints) {
         // ...
     }
 

@@ -1,19 +1,19 @@
-fun main(args: Array<String>){
-val a = 1
-val b = true
-var c = 1
+fun main(){
+    val a: Int = 1
+    val b: Boolean = true
+    var c: Int = 1
 
-var result: Int
-var booleanResult: Boolean
+    var result: Int
+    var booleanResult: Boolean
 
-result = -a
-println("-a = $result")
+    result = -a
+    println("-a = $result")
 
-booleanResult = !b
-println("!b = $booleanResult")
+    booleanResult = !b
+    println("!b = $booleanResult")
 
-var y = --c
-c--
-println("--c = $c");
+    var y: Int = --c
+    c--
+    println("--c = $c");
 
 }

@@ -7,9 +7,9 @@ fun main() {
   myFunction("Jane")
   myFunction("George")
 
-// John Doe
-// Jane Doe
-// George Doe
+  // John Doe
+  // Jane Doe
+  // George Doe
 
 }
   

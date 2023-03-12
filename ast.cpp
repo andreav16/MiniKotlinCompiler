@@ -73,6 +73,18 @@ PRINT_BINARY_EXPRESSION(And);
 PRINT_BINARY_EXPRESSION(Eq);
 PRINT_BINARY_EXPRESSION(Neq);
 
+void ParamExpression::print(){
+    cout << "Params expr of type " << this->type->primitiveType << " Line: " << this->line << " column : " << this->column << endl;
+}
+
+void ArrayParamExpression::print(){
+    cout << "Arrat param expr of type " << this->type->primitiveType << " Line: " << this->line << " column : " << this->column << endl;
+}
+
+void ArrayArgExpression::print(){
+    cout << "Array arg expr of type " << this->type->primitiveType << " Line: " << this->line << " column : " << this->column << endl;
+}
+
 void VarDeclarationStatement::print()
 {
     cout << "Var Declaration Statement line: " << this->line << " column: " << this->column << endl;
@@ -81,6 +93,11 @@ void VarDeclarationStatement::print()
 void VarDeclAssignStatement::print()
 {
     cout << "Var decl and assign Statement line: " << this->line << " column: " << this->column << endl;
+}
+
+void ArrayVarDeclAssignStatement::print()
+{
+    cout << "Array var decl Statement line: " << this->line << " column: " << this->column << endl;
 }
 
 void PrintStatement::print()
@@ -111,6 +128,7 @@ void CommentStatement::print()
 void ForStatement::print()
 {
     cout << " For Statement line: " << this->line << " column: " << this->column << endl;
+    this->stmt->print();
 }
 
 void ReturnStatement::print()
@@ -131,4 +149,28 @@ void IncreDecreStatement::print()
 void WhileStatement::print()
 {
     cout << " While Statement line: " << this->line << " column: " << this->column << endl;
+    this->stmt->print();
+}
+
+void BlockStatement::print(){
+    cout << "Block Statement line: " << this->line << " column: " << this->column << endl;
+    list<Statement *>::iterator itStmt = this->statements->begin();
+    while(itStmt != this->statements->end()){
+        (*itStmt)->print();
+        itStmt++;
+    }
+}
+
+void FunctionStatement::print(){
+    cout << " Function " <<this->id<<" Statement line: " << this->line << " column: " << this->column << endl;
+    this->block->print();
+}
+
+void BlockFunctionStatement::print(){
+    cout << "Block Functions Statement line: " << this->line << " column: " << this->column << endl;
+    list<Statement *>::iterator itStmt = this->statements->begin();
+    while(itStmt != this->statements->end()){
+        (*itStmt)->print();
+        itStmt++;
+    }
 }

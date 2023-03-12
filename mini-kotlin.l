@@ -12,8 +12,8 @@ DIGIT [0-9]
 %%
 
 
-"//"[^\n]* { return TK_LINE_COMMENT; }
-"/*"([^\*])*"*/" { return TK_BLOCK_COMMENT; }
+"//"[^\n]* { yylval.string_t = strdup(yytext); return TK_LINE_COMMENT; }
+"/*"([^\*])*"*/" { yylval.string_t = strdup(yytext); return TK_BLOCK_COMMENT; }
 "+" {return '+';}
 "-" {return '-';}
 "*" {return '*';}
@@ -72,11 +72,11 @@ DIGIT [0-9]
 "readLine" {return KW_READLINE;}
 "println" {return KW_PRINTLN;}
 "print" {return KW_PRINT;}
-{LETTER}({LETTER}|{DIGIT})* { return TK_ID; }
-{DIGIT}+"."{DIGIT}+ { return TK_LIT_FLOAT; }
-{DIGIT}+ { return TK_LIT_INT; }
-"'"[^']{0,1}"'" {return TK_LIT_CHAR;}/*Char*/
-"\""[^"]*"\"" {return TK_LIT_STRING;}/*Cadena/string*/
+{LETTER}({LETTER}|{DIGIT})* { yylval.string_t = strdup(yytext); return TK_ID; }
+{DIGIT}+"."{DIGIT}+ { yylval.float_t = atof(yytext); return TK_LIT_FLOAT; }
+{DIGIT}+ { yylval.int_t = atoi(yytext); return TK_LIT_INT; }
+"'"[^']{0,1}"'" { yylval.char_t = yytext[1]; return TK_LIT_CHAR;}/*Char*/
+"\""[^"]*"\"" { yylval.string_t = strdup(yytext); return TK_LIT_STRING;}/*Cadena/string*/
 [ \t] { column++; }
 [ \n \r] { line++; }
 . {printf("Caracter invalido %c en la linea %d\n",yytext[0],yylineno);return -1;}

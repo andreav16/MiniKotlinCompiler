@@ -1,26 +1,26 @@
-fun main(args: Array<String>) {
-
-    val a = 10
-    val b = 9
-    val c = -1
+fun main() {
+    
+    val a: Int = 10
+    val b: Int = 9
+    val c: Int = -1
     val result: Boolean
 
     // result is true is a is largest
-    result = (a>b) && (a>c) || (a==c)// result = (a>b) and (a>c)
+    result = (a>b) && (a>c) || (a==c) // result = (a>b) and (a>c)
     println(result)
 }
 
 fun f(x: Int): Int {
-    var cur = x + 1
+    var cur: Float = x + 1
     while (cur % 10 == 0) cur = 10
     return cur
 }
 
-fun main(args: Array<String>) {
+fun main() {
 
-    val num = intArrayOf(1, 2, 3, 4, 5)
-    val toFind = 3
-    var found = false
+    val num = Array<Int>(3){0};
+    val toFind: Int = 3
+    var found: Boolean = false
 
     for (n in num) {
         if (n == toFind) {

@@ -202,6 +202,48 @@ IMPLEMENT_BINARY_EXPR(And);
 IMPLEMENT_BINARY_EXPR(Eq);
 IMPLEMENT_BINARY_EXPR(Neq);
 
+//2.6 Params Expr
+
+class ParamExpression: public Expression{
+public:
+    ParamExpression(string id, ComplexType* type, int line, int column)
+        : Expression(line, column){
+        this->id = id;
+        this->type = type;
+    }
+    string id;
+    ComplexType* type;
+    void print();
+};
+
+class ArrayParamExpression: public Expression{
+    public:
+        ArrayParamExpression(string id, ComplexType * type, int line, int column)
+            : Expression(line, column)
+        {
+            this->id = id;
+            this->type = type;
+        }
+        string id; 
+        ComplexType * type;
+        void print();
+};
+
+// 2.7 Args Expr
+
+class ArrayArgExpression: public Expression{
+    public:
+        ArrayArgExpression(ComplexType * type, list<Expression *> * literals, int line, int column)
+            : Expression(line, column)
+        {
+            this->type = type;
+            this->literals = literals;
+        }
+        ComplexType * type;
+        list<Expression *> * literals;
+        void print();
+};
+
 /*STATEMENT ABSTRACT CLASS*/
 class Statement : public Node
 {
@@ -221,13 +263,13 @@ public:
 class VarDeclarationStatement : public Declaration
 {
 public:
-    VarDeclarationStatement(string id, ComplexType *type, int line, int column) : Declaration(line, column)
+    VarDeclarationStatement(string id, ComplexType * type, int line, int column) : Declaration(line, column)
     {
         this->id = id;
         this->type = type;
     }
     string id;
-    ComplexType *type;
+    ComplexType * type;
     void print();
 };
 
@@ -242,6 +284,24 @@ public:
     }
     VarDeclarationStatement * decl;
     Expression * expr;
+    void print();
+};
+
+class ArrayVarDeclAssignStatement : public Declaration
+{
+public:
+    ArrayVarDeclAssignStatement(string id, ComplexType *type, int size, Expression * initializer, int line, int column) 
+        : Declaration(line, column)
+    {
+        this->id = id;
+        this->type = type;
+        this->size = size;
+        this->initializer = initializer;
+    }
+    string id;
+    ComplexType *type;
+    int size;
+    Expression * initializer;
     void print();
 };
 
@@ -304,14 +364,14 @@ public:
 class ForStatement : public Statement
 {
 public:
-    ForStatement(VarDeclarationStatement *varDeclaration, Expression *fromExpr, Expression *toExpr, Statement *stmt, int line, int column) : Statement(line, column)
+    ForStatement(string iteratorId, Expression *fromExpr, Expression *toExpr, Statement *stmt, int line, int column) : Statement(line, column)
     {
-        this->varDeclaration = varDeclaration;
+        this->iteratorId = iteratorId;
         this->fromExpr = fromExpr;
         this->toExpr = toExpr;
         this->stmt = stmt;
     }
-    VarDeclarationStatement *varDeclaration;
+    string iteratorId;
     Expression *fromExpr;
     Expression *toExpr;
     Statement *stmt;
@@ -356,5 +416,42 @@ class WhileStatement: public Statement{
         }
         Expression * expr;
         Statement * stmt;
+        void print();
+};
+
+
+class BlockStatement: public Statement{
+    public:
+        BlockStatement(list<Statement *> * statements, int line, int column):
+            Statement(line, column) {
+                this->statements = statements;
+        }
+        list<Statement *> * statements;
+        void print();
+};
+
+class FunctionStatement: public Statement{
+    public:
+        FunctionStatement(string id, list<Expression *> * params, ComplexType * returnType , Statement * block, int line, int column)
+            : Statement(line, column) {
+                this->id = id;
+                this->params = params;
+                this->returnType = returnType;
+                this->block = block;
+        }
+        string id;
+        list<Expression *> * params;
+        ComplexType * returnType;
+        Statement * block;
+        void print();
+};
+
+class BlockFunctionStatement: public Statement{
+    public:
+        BlockFunctionStatement(list<Statement *> * statements, int line, int column):
+            Statement(line, column) {
+                this->statements = statements;
+        }
+        list<Statement *> * statements;
         void print();
 };

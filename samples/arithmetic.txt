@@ -1,7 +1,7 @@
-fun main(args: Array<String>) {
+fun main() {
 
-    val number1 = 12.5
-    val number2 = 3.5
+    val number1: Float = 12.5
+    val number2: Float = 3.5
     var result: Float
 
     result = number1 + number2

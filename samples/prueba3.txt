@@ -1,11 +1,11 @@
 fun mul(arr:Array<Int>, size:Int): Int {
-    var number = 5
+    var number: Int = 5
 }
 fun sub(a: String, b: String): String {
-    var number = 5
+    var number: Int = 5
 }
-fun main(args: Array<String>) {
-    var result = 5
+fun main() {
+    var result: Int = 5
     println("hola")
 }
 
