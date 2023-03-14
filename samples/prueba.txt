@@ -2,14 +2,19 @@ fun myFunction(fname: String) {
   println(fname + " Doe")
 }
 
-fun myFunction(fname: String) {
-  println(fname + " Doe")
-}
 
 fun main() {
   myFunction("John")
   myFunction("Jane")
   myFunction("George")
+
+    val number1: Float = 12.5
+    val number2: String = "hola";
+    var result: Float
+
+    result = number1 + number2
+    println("number1 + number2 = $result")
+
 
   // John Doe
   // Jane Doe
