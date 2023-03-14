@@ -5,7 +5,7 @@ ${TARGET}: ast.o ${TARGET}_parser.o ${TARGET}_lexer.o main.o
 	g++ -g -o $@ $^
 
 ast.o: ast.cpp ast.h
-	g++ -g -c -o $@ $<
+	g++ -std=c++11 -g -c -o $@ $<
 
 main.o: main.cpp
 	g++ -g -c -o $@ $<

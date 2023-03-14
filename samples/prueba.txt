@@ -2,6 +2,10 @@ fun myFunction(fname: String) {
   println(fname + " Doe")
 }
 
+fun myFunction(fname: String) {
+  println(fname + " Doe")
+}
+
 fun main() {
   myFunction("John")
   myFunction("Jane")

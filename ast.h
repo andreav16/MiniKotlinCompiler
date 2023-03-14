@@ -53,6 +53,7 @@ public:
     {
     }
     virtual void print() = 0;
+    virtual PrimitiveType getType() = 0;
 };
 
 //2.1 Literals
@@ -65,6 +66,7 @@ public:
     }
     char value;
     void print();
+    PrimitiveType getType();
 };
 
 class StringExpression: public Expression
@@ -75,6 +77,7 @@ public:
     }
     string value;
     void print();
+    PrimitiveType getType();
 };
 
 class IntExpression: public Expression
@@ -85,6 +88,7 @@ public:
     }
     int value;
     void print();
+    PrimitiveType getType();
 };
 
 class FloatExpression: public Expression{
@@ -94,6 +98,7 @@ public:
     }
     float value;
     void print();
+    PrimitiveType getType();
 };
 
 class BooleanExpression: public Expression{
@@ -103,6 +108,7 @@ public:
     }
     bool value;
     void print();
+    PrimitiveType getType();
 };
 
 //2.2 Factors
@@ -114,6 +120,7 @@ public:
     }
     string id;
     void print();
+    PrimitiveType getType();
 };
 
 class ArrayAccessExpression: public Expression{
@@ -125,6 +132,7 @@ public:
     IdExpression * id;
     Expression * index;
     void print();
+    PrimitiveType getType();
 };
 
 class MethodCallExpression: public Expression{
@@ -136,6 +144,7 @@ public:
     IdExpression * id;
     list<Expression *> * args;
     void print();
+    PrimitiveType getType();
 };
 
 //2.3 Incre Decre
@@ -149,6 +158,7 @@ public:
     IncreDecreOperator op;
     Expression * expr;
     void print();
+    PrimitiveType getType();
 };
 
 //2.4 Unary
@@ -162,6 +172,7 @@ public:
     UnaryOperator op;
     Expression * expr;
     void print();
+    PrimitiveType getType();
 };
 
 //2.5 Binary
@@ -183,7 +194,9 @@ class name##Expression  : public BinaryExpression{\
 public: \
     name##Expression(Expression * left, Expression * right, int line, int column): BinaryExpression(left, right, line, column){}\
     void print();\
+    PrimitiveType getType();\
 };
+
 
 IMPLEMENT_BINARY_EXPR(Mult);
 IMPLEMENT_BINARY_EXPR(Div);
@@ -214,6 +227,7 @@ public:
     string id;
     ComplexType* type;
     void print();
+    PrimitiveType getType();
 };
 
 class ArrayParamExpression: public Expression{
@@ -227,6 +241,7 @@ class ArrayParamExpression: public Expression{
         string id; 
         ComplexType * type;
         void print();
+        PrimitiveType getType();
 };
 
 // 2.7 Args Expr
@@ -242,6 +257,8 @@ class ArrayArgExpression: public Expression{
         ComplexType * type;
         list<Expression *> * literals;
         void print();
+        PrimitiveType getType();
+        
 };
 
 /*STATEMENT ABSTRACT CLASS*/
@@ -250,6 +267,7 @@ class Statement : public Node
 public:
     Statement(int line, int column) : Node(line, column) {}
     virtual void print() = 0;
+    //virtual void evaluateSemantic() = 0;
 };
 
 /*3. DECLARATIONS*/
@@ -258,6 +276,7 @@ class Declaration : public Statement
 public:
     Declaration(int line, int column) : Statement(line, column) {}
     virtual void print() = 0;
+    //virtual void evaluateSemantic() =0;
 };
 
 class VarDeclarationStatement : public Declaration
@@ -271,6 +290,7 @@ public:
     string id;
     ComplexType * type;
     void print();
+    // void evaluateSemantic();
 };
 
 class VarDeclAssignStatement : public Declaration
@@ -285,6 +305,7 @@ public:
     VarDeclarationStatement * decl;
     Expression * expr;
     void print();
+    //void evaluateSemantic();
 };
 
 class ArrayVarDeclAssignStatement : public Declaration
@@ -303,6 +324,17 @@ public:
     int size;
     Expression * initializer;
     void print();
+    // void evaluateSemantic();
+};
+
+class MethodInformation{
+    public:
+        PrimitiveType returnType;
+        VarDeclarationStatement * parameters;
+        MethodInformation(PrimitiveType returnType, VarDeclarationStatement * parameters){
+            this->returnType = returnType;
+            this->parameters = parameters;
+        }
 };
 
 /*4. STATEMENTS*/
@@ -316,6 +348,7 @@ public:
     }
     Expression *expression;
     void print();
+    // void evaluateSemantic();
 };
 
 class IfStatement : public Statement
@@ -331,6 +364,7 @@ public:
     Statement *trueStatement;
     Statement *falseStatement;
     void print();
+    // void evaluateSemantic();
 };
 
 class AssignationStatement : public Statement
@@ -348,6 +382,7 @@ public:
     Expression *index;
     bool isArray;
     void print();
+    // void evaluateSemantic();
 };
 
 class CommentStatement : public Statement
@@ -359,6 +394,7 @@ public:
     }
     string comment;
     void print();
+    // void evaluateSemantic();
 };
 
 class ForStatement : public Statement
@@ -376,6 +412,7 @@ public:
     Expression *toExpr;
     Statement *stmt;
     void print();
+    // void evaluateSemantic();
 };
 
 class ReturnStatement: public Statement{
@@ -385,6 +422,7 @@ class ReturnStatement: public Statement{
         }
         Expression * expression;
         void print();
+        // void evaluateSemantic();
 };
 
 class ExpressionStatement : public Statement{
@@ -395,6 +433,7 @@ class ExpressionStatement : public Statement{
         }
         Expression * expr;
         void print();
+        // void evaluateSemantic();
 };
 
 class IncreDecreStatement: public Statement{
@@ -405,6 +444,7 @@ class IncreDecreStatement: public Statement{
         }
         IncreDecreExpression * expr;
         void print();
+        // void evaluateSemantic();
 };
 
 class WhileStatement: public Statement{
@@ -417,6 +457,7 @@ class WhileStatement: public Statement{
         Expression * expr;
         Statement * stmt;
         void print();
+        // void evaluateSemantic();
 };
 
 
@@ -428,6 +469,7 @@ class BlockStatement: public Statement{
         }
         list<Statement *> * statements;
         void print();
+        // void evaluateSemantic();
 };
 
 class FunctionStatement: public Statement{
@@ -444,6 +486,7 @@ class FunctionStatement: public Statement{
         ComplexType * returnType;
         Statement * block;
         void print();
+        // void evaluateSemantic();
 };
 
 class BlockFunctionStatement: public Statement{
@@ -454,4 +497,5 @@ class BlockFunctionStatement: public Statement{
         }
         list<Statement *> * statements;
         void print();
+        // void evaluateSemantic();
 };
