@@ -330,10 +330,9 @@ public:
 class MethodInformation{
     public:
         PrimitiveType returnType;
-        VarDeclarationStatement * parameters;
-        MethodInformation(PrimitiveType returnType, VarDeclarationStatement * parameters){
+        list< IdExpression *> * parameters;
+        MethodInformation(PrimitiveType returnType, list<IdExpression *>  * parameters){
             this->returnType = returnType;
-            this->parameters = parameters;
         }
 };
 

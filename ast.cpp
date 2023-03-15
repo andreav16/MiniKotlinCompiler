@@ -278,12 +278,46 @@ PrimitiveType ArrayAccessExpression::getType(){
 
 PrimitiveType MethodCallExpression::getType()
 {
-    return this->id->getType(); //no sestoy segura
+    MethodInformation * method = methods[this->id->id];
+    if (method == NULL)
+    {
+        cerr<<this->id->id<<" no declarado linea: "<<this->line<<" column "<<this->column<<endl;
+        return NONE;
+    }
+  
+    if (method->parameters->size() > this->args->size())
+    {
+        cerr<<"Muy pocos argumentos para el método: "<<this->id->id <<" linea: "<<this->line<<" column "<<this->column<<endl;
+        return NONE;
+    }
+    
+    if (method->parameters->size() < this->args->size())
+    {
+        cerr<<"Muchos argumentos para el método: "<<this->id->id <<" linea: "<<this->line<<" column "<<this->column<<endl;
+        return NONE;
+    }
+
+    /*
+    ComplexType * paramsType = method->parameters;
+    list<Expression*>::iterator argsIt = this->args->begin();
+    while (argsIt != this->args->end())
+    {
+        if ((*argsIt)->getType() != paramsType->primitiveType)
+        {   
+            cerr<<"Tipo de dato incorrecto en parámetros, se esperaba tipo: "<<getTypeAsString(paramsType->primitiveType)<<" se obtuvo: "<< getTypeAsString((*argsIt)->getType()) <<" linea: "<<this->line<<" column "<<this->column<<endl;
+            return NONE;
+        }
+        argsIt++;
+    }
+    
+    */
+
+    return method->returnType;
 }
 
 PrimitiveType IncreDecreExpression::getType()
 {
-    return this->expr->getType(); //no estoy segura
+    return this->expr->getType();
 }
 
 PrimitiveType UnaryExpression::getType(){
@@ -299,15 +333,15 @@ PrimitiveType UnaryExpression::getType(){
 }
 
 PrimitiveType ParamExpression::getType(){
-    //nada
+    return this->getType(); //no se 
 }
 
 PrimitiveType ArrayParamExpression::getType(){
-   //nada
+    return this->getType(); //no se 
 }
 
 PrimitiveType ArrayArgExpression::getType(){
-    //nada
+    return this->getType(); //no se 
 }
 
 map<string, PrimitiveType> exprResultTypes = {
@@ -333,7 +367,6 @@ string getTypeAsString(PrimitiveType type){
     }else if(type == INT){
         return "INT";
     }
-    //no se lo de void
     return "NONE";
 }
 
