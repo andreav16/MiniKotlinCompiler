@@ -24,6 +24,7 @@
         Declaration * decl_t;
         VarDeclarationStatement * var_declaration_t;
         list<Expression *> * expr_list_t;
+        list<VarDeclarationStatement *> * var_declaration_list_t;
         list<Statement *> * stmt_list_t;
         ComplexType * type_t;
 }
@@ -44,12 +45,13 @@
 %type<statement_t> stmt print_stmt if_stmt assignation_stmt comment_stmt loop_stmt returnORbreak_stmt methodcall_stmt incre_decre_stmt for_stmt
 %type<statement_t> program block func while_stmt do_while_stmt decls_or_stmts
 %type<stmt_list_t> decls_stmts functions
-%type<expr_t> array_param array_arg literal factor unary_expression incre_decre_expression term arithmetic_expression comparison_expression expression
+%type<expr_t>  array_arg literal factor unary_expression incre_decre_expression term arithmetic_expression comparison_expression expression
 %type<decl_t> decl decl_inline
-%type<var_declaration_t> variable_decl
+%type<var_declaration_t> variable_decl array_param
 %type<int_t> type_identifier
-%type<expr_list_t> args params func_CallLiterals
+%type<expr_list_t> args func_CallLiterals
 %type<type_t> func_type type
+%type<var_declaration_list_t> params
 
 %precedence TK_EQUAL TK_NOT_EQUAL
 %precedence TK_AND
@@ -60,7 +62,7 @@
 program: functions 
         {
            $$ = new BlockFunctionStatement($1, line, column);
-           $$->print();
+           $$->evaluateSemantic();
         }
         ;
 
@@ -71,7 +73,7 @@ functions: func functions { $$ = $2; $$->push_back($1); }
 func: KW_FUN TK_ID '(' params ')' ':' func_type block { $$ = new FunctionStatement($2, $4, $7, $8, line, column); }
     | KW_FUN TK_ID '(' params ')' block { $$ = new FunctionStatement($2, $4, new ComplexType(VOID, false), $6, line, column); }
     | KW_FUN KW_MAIN '(' KW_ARGS ':' KW_ARRAY '<' KW_STRING '>' ')' block {}
-    | KW_FUN KW_MAIN '(' ')' block { $$ = new FunctionStatement("main", NULL, new ComplexType(VOID, false), $5, line, column);  }
+    | KW_FUN KW_MAIN '(' ')' block { $$ = new FunctionStatement("main", new list<VarDeclarationStatement *>, new ComplexType(VOID, false), $5, line, column);  }
     ;
 
 block: '{' decls_stmts '}' { $$ = new BlockStatement($2, line, column); }
@@ -100,14 +102,14 @@ decl_inline: variable_decl { $$ = $1; }
 variable_decl: TK_ID ':' func_type { $$ = new VarDeclarationStatement($1,$3,line, column);}
             ;
 
-params: TK_ID ':' type ',' params { $$ = $5; $$->push_back(new ParamExpression($1, $3, line, column)); }
-        | TK_ID ':' type { $$ = new list<Expression *>; $$->push_back(new ParamExpression($1, $3, line, column));}
+params: TK_ID ':' type ',' params { $$ = $5; $$->push_back(new VarDeclarationStatement($1, $3, line, column)); }
+        | TK_ID ':' type { $$ = new list<VarDeclarationStatement *>; $$->push_back(new VarDeclarationStatement($1, $3, line, column));}
         | array_param params { $$ = $2; $$->push_back($1); }
-        | /*epsilon*/ { $$ = new list<Expression *>; }
+        | /*epsilon*/ { $$ = new list<VarDeclarationStatement *>; }
         ;
 
-array_param: TK_ID ':' KW_ARRAY '<' type_identifier '>' ',' { $$ = new ArrayParamExpression($1, new ArrayType((PrimitiveType)$5), line, column); }
-        | TK_ID ':' KW_ARRAY '<' type_identifier '>' { $$ = new ArrayParamExpression($1, new ArrayType((PrimitiveType)$5), line, column); }
+array_param: TK_ID ':' KW_ARRAY '<' type_identifier '>' ',' { $$ = new VarDeclarationStatement($1, new ArrayType(1,(PrimitiveType)$5), line, column); }
+        | TK_ID ':' KW_ARRAY '<' type_identifier '>' { $$ = new VarDeclarationStatement($1, new ArrayType(1,(PrimitiveType)$5), line, column); }
         ;
 
 args: TK_ID ',' args { $$ = $3; $$->push_back(new IdExpression($1, line, column)); }
@@ -117,8 +119,8 @@ args: TK_ID ',' args { $$ = $3; $$->push_back(new IdExpression($1, line, column)
         | array_arg args { $$ = $2; $$->push_back($1); }
         ;
 
-array_arg: KW_ARRAYOF '<' type_identifier '>' '(' func_CallLiterals ')' ',' { $$ = new ArrayArgExpression(new ArrayType((PrimitiveType)$3), $6, line, column); }
-        | KW_ARRAYOF '<' type_identifier '>' '(' func_CallLiterals ')' { $$ = new ArrayArgExpression(new ArrayType((PrimitiveType)$3), $6, line, column); }
+array_arg: KW_ARRAYOF '<' type_identifier '>' '(' func_CallLiterals ')' ',' { $$ = new ArrayArgExpression(new ArrayType(1,(PrimitiveType)$3), $6, line, column); }
+        | KW_ARRAYOF '<' type_identifier '>' '(' func_CallLiterals ')' { $$ = new ArrayArgExpression(new ArrayType(1,(PrimitiveType)$3), $6, line, column); }
         ;
 
 stmt: print_stmt { $$ = $1;}
@@ -170,8 +172,6 @@ do_while_stmt: KW_DO block KW_WHILE '(' expression ')' { $$ = new WhileStatement
 
 for_stmt: KW_FOR '(' TK_ID KW_IN expression KW_UNTIL expression ')' block { $$ = new ForStatement($3,$5,$7,$9, line, column);}
     | KW_FOR '(' TK_ID KW_IN expression KW_UNTIL expression ')' stmt { $$ = new ForStatement($3,$5,$7,$9, line, column);}
-    | KW_FOR '(' TK_ID KW_IN expression ')' block { $$ = new ForStatement($3,$5,NULL,$7, line, column);}
-    | KW_FOR '(' TK_ID KW_IN expression ')' stmt { $$ = new ForStatement($3,$5,NULL,$7, line, column);}
     ; 
             
 comment_stmt: TK_LINE_COMMENT { $$ = new CommentStatement($1,line, column);}
@@ -249,7 +249,7 @@ type: type_identifier { $$ = new ComplexType((PrimitiveType)$1, false); /*solo P
      ;
 
 func_type: type_identifier { $$ = new ComplexType((PrimitiveType)$1, false); }
-    | KW_ARRAY '<' type_identifier '>' { $$ = new ArrayType((PrimitiveType)$3); /*Si incluye Array*/}
+    | KW_ARRAY '<' type_identifier '>' { $$ = new ArrayType(1,(PrimitiveType)$3); /*Si incluye Array*/}
     ;
 
 type_identifier: KW_INT { $$ = INT; }

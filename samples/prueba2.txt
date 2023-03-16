@@ -1,19 +1,4 @@
 fun main(){
-    val a: Int = 1
-    val b: Boolean = true
-    var c: Int = 1
-
-    var result: Int
-    var booleanResult: Boolean
-
-    result = -a
-    println("-a = $result")
-
-    booleanResult = !b
-    println("!b = $booleanResult")
-
-    var y: Int = --c
-    c--
-    println("--c = $c");
-
+    val a: Boolean
+    a++;
 }

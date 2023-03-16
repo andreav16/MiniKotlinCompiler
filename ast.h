@@ -36,11 +36,13 @@ public:
 class ArrayType : public ComplexType
 {
 public:
-    ArrayType(PrimitiveType primitiveType)
+    ArrayType(int size, PrimitiveType primitiveType)
         : ComplexType(primitiveType, true)
     {
         this->primitiveType = primitiveType;
+        this->size = size;
     }
+    int size;
     PrimitiveType primitiveType;
 };
 
@@ -230,19 +232,6 @@ public:
     PrimitiveType getType();
 };
 
-class ArrayParamExpression: public Expression{
-    public:
-        ArrayParamExpression(string id, ComplexType * type, int line, int column)
-            : Expression(line, column)
-        {
-            this->id = id;
-            this->type = type;
-        }
-        string id; 
-        ComplexType * type;
-        void print();
-        PrimitiveType getType();
-};
 
 // 2.7 Args Expr
 
@@ -267,7 +256,7 @@ class Statement : public Node
 public:
     Statement(int line, int column) : Node(line, column) {}
     virtual void print() = 0;
-    //virtual void evaluateSemantic() = 0;
+    virtual void evaluateSemantic() = 0;
 };
 
 /*3. DECLARATIONS*/
@@ -276,7 +265,7 @@ class Declaration : public Statement
 public:
     Declaration(int line, int column) : Statement(line, column) {}
     virtual void print() = 0;
-    //virtual void evaluateSemantic() =0;
+    virtual void evaluateSemantic() =0;
 };
 
 class VarDeclarationStatement : public Declaration
@@ -290,7 +279,7 @@ public:
     string id;
     ComplexType * type;
     void print();
-    // void evaluateSemantic();
+    void evaluateSemantic();
 };
 
 class VarDeclAssignStatement : public Declaration
@@ -305,7 +294,7 @@ public:
     VarDeclarationStatement * decl;
     Expression * expr;
     void print();
-    //void evaluateSemantic();
+    void evaluateSemantic();
 };
 
 class ArrayVarDeclAssignStatement : public Declaration
@@ -324,15 +313,17 @@ public:
     int size;
     Expression * initializer;
     void print();
-    // void evaluateSemantic();
+    void evaluateSemantic();
 };
 
+/*Pend de revisar*/
 class MethodInformation{
     public:
         PrimitiveType returnType;
-        list< IdExpression *> * parameters;
-        MethodInformation(PrimitiveType returnType, list<IdExpression *>  * parameters){
+        list<VarDeclarationStatement *> * parameters;
+        MethodInformation(PrimitiveType returnType, list<VarDeclarationStatement *>  * parameters){
             this->returnType = returnType;
+            this->parameters = parameters;
         }
 };
 
@@ -347,7 +338,7 @@ public:
     }
     Expression *expression;
     void print();
-    // void evaluateSemantic();
+    void evaluateSemantic();
 };
 
 class IfStatement : public Statement
@@ -363,7 +354,7 @@ public:
     Statement *trueStatement;
     Statement *falseStatement;
     void print();
-    // void evaluateSemantic();
+    void evaluateSemantic();
 };
 
 class AssignationStatement : public Statement
@@ -381,7 +372,7 @@ public:
     Expression *index;
     bool isArray;
     void print();
-    // void evaluateSemantic();
+    void evaluateSemantic();
 };
 
 class CommentStatement : public Statement
@@ -393,7 +384,7 @@ public:
     }
     string comment;
     void print();
-    // void evaluateSemantic();
+    void evaluateSemantic();
 };
 
 class ForStatement : public Statement
@@ -411,7 +402,7 @@ public:
     Expression *toExpr;
     Statement *stmt;
     void print();
-    // void evaluateSemantic();
+    void evaluateSemantic();
 };
 
 class ReturnStatement: public Statement{
@@ -421,7 +412,7 @@ class ReturnStatement: public Statement{
         }
         Expression * expression;
         void print();
-        // void evaluateSemantic();
+        void evaluateSemantic();
 };
 
 class ExpressionStatement : public Statement{
@@ -432,7 +423,7 @@ class ExpressionStatement : public Statement{
         }
         Expression * expr;
         void print();
-        // void evaluateSemantic();
+        void evaluateSemantic();
 };
 
 class IncreDecreStatement: public Statement{
@@ -443,7 +434,7 @@ class IncreDecreStatement: public Statement{
         }
         IncreDecreExpression * expr;
         void print();
-        // void evaluateSemantic();
+        void evaluateSemantic();
 };
 
 class WhileStatement: public Statement{
@@ -456,7 +447,7 @@ class WhileStatement: public Statement{
         Expression * expr;
         Statement * stmt;
         void print();
-        // void evaluateSemantic();
+        void evaluateSemantic();
 };
 
 
@@ -468,12 +459,12 @@ class BlockStatement: public Statement{
         }
         list<Statement *> * statements;
         void print();
-        // void evaluateSemantic();
+        void evaluateSemantic();
 };
 
 class FunctionStatement: public Statement{
     public:
-        FunctionStatement(string id, list<Expression *> * params, ComplexType * returnType , Statement * block, int line, int column)
+        FunctionStatement(string id, list<VarDeclarationStatement *> * params, ComplexType * returnType , Statement * block, int line, int column)
             : Statement(line, column) {
                 this->id = id;
                 this->params = params;
@@ -481,11 +472,11 @@ class FunctionStatement: public Statement{
                 this->block = block;
         }
         string id;
-        list<Expression *> * params;
+        list<VarDeclarationStatement *> * params;
         ComplexType * returnType;
         Statement * block;
         void print();
-        // void evaluateSemantic();
+        void evaluateSemantic();
 };
 
 class BlockFunctionStatement: public Statement{
@@ -496,5 +487,5 @@ class BlockFunctionStatement: public Statement{
         }
         list<Statement *> * statements;
         void print();
-        // void evaluateSemantic();
+        void evaluateSemantic();
 };

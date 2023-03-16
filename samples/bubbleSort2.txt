@@ -17,5 +17,9 @@ fun bubbleSort(arr:Array<Int>, size:Int):Array<Int>{
 
 fun main() {
     val list: Array<Int> = bubbleSort(arrayOf<Int>(2,15,1,8,4), 5)
-    for (k in list) print("$k ")
+    var k:Int 
+    k=0
+    for(k in 0 until 4){
+        print("hola")
+    }
 }
