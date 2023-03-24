@@ -4,12 +4,28 @@
 
 %{
     #include <cstdio>
+    #include "asm.h"
+    #include <fstream>
+    #include <iostream>
     extern int yylineno;
     int yylex();
     extern int line;
     extern int column;
+    asmcode assemblyResult;
     void yyerror(const char * message){
         fprintf(stderr, "Error: %s in line: %d and column %d\n", message, line, column);
+    }
+
+    void writeFile(string name){
+        ofstream file;
+        file.open(name);
+        file<<".data"<<endl
+        <<"\t"<< assemblyResult.data<<endl
+        <<"\t" << "nextline: .asciiz \"\\n\""<<endl
+        <<".text"
+        <<"\t"<< assemblyResult.text<<endl
+        <<".globl main"<<endl
+        <<"\t"<< assemblyResult.code<<endl;
     }
 %}
 
@@ -63,6 +79,9 @@ program: functions
         {
            $$ = new BlockFunctionStatement($1, line, column);
            $$->evaluateSemantic();
+           string code = $$->generateCode();
+           assemblyResult.code += code;
+           writeFile("result.asm");
         }
         ;
 

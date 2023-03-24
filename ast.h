@@ -2,7 +2,7 @@
 #include <string>
 #include <list>
 #include <vector>
-
+#include "CodeContext.h"
 #include "constants.h"
 
 using namespace std;
@@ -20,31 +20,7 @@ public:
     virtual void print() = 0;
 };
 
-/*1. TYPES*/
-class ComplexType
-{
-public:
-    ComplexType(PrimitiveType primitiveType, bool isArray)
-    {
-        this->primitiveType = primitiveType;
-        this->isArray = isArray;
-    }
-    PrimitiveType primitiveType;
-    bool isArray;
-};
 
-class ArrayType : public ComplexType
-{
-public:
-    ArrayType(int size, PrimitiveType primitiveType)
-        : ComplexType(primitiveType, true)
-    {
-        this->primitiveType = primitiveType;
-        this->size = size;
-    }
-    int size;
-    PrimitiveType primitiveType;
-};
 
 
 /*2. EXPRESSIONS*/
@@ -55,7 +31,7 @@ public:
     {
     }
     virtual void print() = 0;
-    virtual PrimitiveType getType() = 0;
+    virtual ComplexType* getType() = 0;
 };
 
 //2.1 Literals
@@ -68,7 +44,7 @@ public:
     }
     char value;
     void print();
-    PrimitiveType getType();
+    ComplexType* getType();
 };
 
 class StringExpression: public Expression
@@ -79,7 +55,7 @@ public:
     }
     string value;
     void print();
-    PrimitiveType getType();
+    ComplexType* getType();
 };
 
 class IntExpression: public Expression
@@ -90,7 +66,7 @@ public:
     }
     int value;
     void print();
-    PrimitiveType getType();
+    ComplexType* getType();
 };
 
 class FloatExpression: public Expression{
@@ -100,7 +76,7 @@ public:
     }
     float value;
     void print();
-    PrimitiveType getType();
+    ComplexType* getType();
 };
 
 class BooleanExpression: public Expression{
@@ -110,7 +86,7 @@ public:
     }
     bool value;
     void print();
-    PrimitiveType getType();
+    ComplexType* getType();
 };
 
 //2.2 Factors
@@ -122,7 +98,7 @@ public:
     }
     string id;
     void print();
-    PrimitiveType getType();
+    ComplexType* getType();
 };
 
 class ArrayAccessExpression: public Expression{
@@ -134,7 +110,7 @@ public:
     IdExpression * id;
     Expression * index;
     void print();
-    PrimitiveType getType();
+    ComplexType* getType();
 };
 
 class MethodCallExpression: public Expression{
@@ -146,7 +122,7 @@ public:
     IdExpression * id;
     list<Expression *> * args;
     void print();
-    PrimitiveType getType();
+    ComplexType* getType();
 };
 
 //2.3 Incre Decre
@@ -160,7 +136,7 @@ public:
     IncreDecreOperator op;
     Expression * expr;
     void print();
-    PrimitiveType getType();
+    ComplexType* getType();
 };
 
 //2.4 Unary
@@ -174,7 +150,7 @@ public:
     UnaryOperator op;
     Expression * expr;
     void print();
-    PrimitiveType getType();
+    ComplexType* getType();
 };
 
 //2.5 Binary
@@ -196,7 +172,7 @@ class name##Expression  : public BinaryExpression{\
 public: \
     name##Expression(Expression * left, Expression * right, int line, int column): BinaryExpression(left, right, line, column){}\
     void print();\
-    PrimitiveType getType();\
+    ComplexType* getType();\
 };
 
 
@@ -229,7 +205,7 @@ public:
     string id;
     ComplexType* type;
     void print();
-    PrimitiveType getType();
+    ComplexType* getType();
 };
 
 
@@ -246,7 +222,7 @@ class ArrayArgExpression: public Expression{
         ComplexType * type;
         list<Expression *> * literals;
         void print();
-        PrimitiveType getType();
+        ComplexType* getType();
         
 };
 
@@ -319,9 +295,9 @@ public:
 /*Pend de revisar*/
 class MethodInformation{
     public:
-        PrimitiveType returnType;
+        ComplexType* returnType;
         list<VarDeclarationStatement *> * parameters;
-        MethodInformation(PrimitiveType returnType, list<VarDeclarationStatement *>  * parameters){
+        MethodInformation(ComplexType* returnType, list<VarDeclarationStatement *>  * parameters){
             this->returnType = returnType;
             this->parameters = parameters;
         }
