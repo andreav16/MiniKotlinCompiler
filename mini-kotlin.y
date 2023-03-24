@@ -78,7 +78,7 @@
 program: functions 
         {
            $$ = new BlockFunctionStatement($1, line, column);
-           $$->evaluateSemantic();
+           //$$->evaluateSemantic();
            string code = $$->generateCode();
            assemblyResult.code += code;
            writeFile("result.asm");
