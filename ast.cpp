@@ -4,7 +4,7 @@
 #include <map>
 #include <set>
 #include "asm.h"
-#include <algorithm>
+#include "algorithm"
 
 using namespace std;
 extern asmcode assemblyResult;
@@ -16,8 +16,8 @@ public:
     CodeGenerationVarInfo(bool isParameter, ComplexType *type, int offset)
     {
         this->isParameter = isParameter;
-        this->type = type;
         this->offset = offset;
+        this->type = type;
     }
     bool isParameter;
     ComplexType *type;
@@ -210,27 +210,27 @@ void BlockFunctionStatement::print()
 
 ComplexType *CharExpression::getType()
 {
-    return new ComplexType((PrimitiveType)CHAR, false);
+    return new ComplexType(CHAR, false);
 }
 
 ComplexType *StringExpression::getType()
 {
-    return new ComplexType((PrimitiveType)STRING, false);
+    return new ComplexType(STRING, false);
 }
 
 ComplexType *IntExpression::getType()
 {
-    return new ComplexType((PrimitiveType)INT, false);
+    return new ComplexType(INT, false);
 }
 
 ComplexType *FloatExpression::getType()
 {
-    return new ComplexType((PrimitiveType)FLOAT, false);
+    return new ComplexType(FLOAT, false);
 }
 
 ComplexType *BooleanExpression::getType()
 {
-    return new ComplexType((PrimitiveType)BOOLEAN, false);
+    return new ComplexType(BOOLEAN, false);
 }
 
 ComplexType *UnaryExpression::getType()
@@ -247,18 +247,17 @@ ComplexType *UnaryExpression::getType()
     return type;
 }
 
-map<string, PrimitiveType> exprResultTypes = 
-{
-    {"INT,INT", INT},
-    {"INT,FLOAT", FLOAT},
-    {"FLOAT,INT", FLOAT},
-    {"FLOAT,FLOAT", FLOAT},
-    {"STRING,STRING", STRING},
-    {"STRING,CHAR", STRING},
-    {"CHAR,STRING", STRING},
-    {"CHAR,CHAR", CHAR},
-    {"BOOLEAN,BOOLEAN", BOOLEAN}
-};
+map<string, PrimitiveType> exprResultTypes =
+    {
+        {"INT,INT", INT},
+        {"INT,FLOAT", FLOAT},
+        {"FLOAT,INT", FLOAT},
+        {"FLOAT,FLOAT", FLOAT},
+        {"STRING,STRING", STRING},
+        {"STRING,CHAR", STRING},
+        {"CHAR,STRING", STRING},
+        {"CHAR,CHAR", CHAR},
+        {"BOOLEAN,BOOLEAN", BOOLEAN}};
 
 string getTypeAsString(ComplexType *type)
 {
@@ -285,31 +284,54 @@ string getTypeAsString(ComplexType *type)
             return "INT_ARRAY";
         }
     }
-    else
+
+    if (type->primitiveType == STRING)
     {
-        if (type->primitiveType == STRING)
-        {
-            return "STRING";
-        }
-        else if (type->primitiveType == CHAR)
-        {
-            return "CHAR";
-        }
-        else if (type->primitiveType == BOOLEAN)
-        {
-            return "BOOLEAN";
-        }
-        else if (type->primitiveType == FLOAT)
-        {
-            return "FLOAT";
-        }
-        else if (type->primitiveType == INT)
-        {
-            return "INT";
-        }
-        return "NONE";
+        return "STRING";
     }
+    else if (type->primitiveType == CHAR)
+    {
+        return "CHAR";
+    }
+    else if (type->primitiveType == BOOLEAN)
+    {
+        return "BOOLEAN";
+    }
+    else if (type->primitiveType == FLOAT)
+    {
+        return "FLOAT";
+    }
+    else if (type->primitiveType == INT)
+    {
+        return "INT";
+    }
+    return "NONE";
 }
+
+#define GET_TYPE_BINARY_EXPR(name)                                                                                                                                                   \
+    ComplexType *name##Expression::getType()                                                                                                                                         \
+    {                                                                                                                                                                                \
+        string leftType = getTypeAsString(this->left->getType());                                                                                                                    \
+        string rightType = getTypeAsString(this->right->getType());                                                                                                                  \
+        PrimitiveType type = exprResultTypes[leftType + "," + rightType];                                                                                                            \
+        if (type == 0)                                                                                                                                                               \
+        {                                                                                                                                                                            \
+            cerr << "El tipo de dato " << leftType << " no puede ser operado con el tipo de dato " << rightType << " linea: " << this->line << " columna: " << this->column << endl; \
+        }                                                                                                                                                                            \
+        return new ComplexType(type, this->left->getType()->isArray || this->right->getType()->isArray);                                                                             \
+    }
+
+#define GET_TYPE_BINARY_EXPR_BOOL(name)                                                                                                                                              \
+    ComplexType *name##Expression::getType()                                                                                                                                         \
+    {                                                                                                                                                                                \
+        string leftType = getTypeAsString(this->left->getType());                                                                                                                    \
+        string rightType = getTypeAsString(this->right->getType());                                                                                                                  \
+        if (leftType != rightType)                                                                                                                                                   \
+        {                                                                                                                                                                            \
+            cerr << "El tipo de dato " << leftType << " no puede ser operado con el tipo de dato " << rightType << " linea: " << this->line << " columna: " << this->column << endl; \
+        }                                                                                                                                                                            \
+        return new ComplexType(BOOLEAN, false);                                                                                                                                      \
+    }
 // Id
 class Context
 {
@@ -352,12 +374,12 @@ ComplexType *getLocalVarType(string id)
         }
         context = context->prev;
     }
-    return new ComplexType((PrimitiveType)NONE, false);
+    return new ComplexType(NONE, false);
 }
 
 ComplexType *getVarType(string id)
 {
-    ComplexType *resultType = new ComplexType((PrimitiveType)NONE, false);
+    ComplexType *resultType = new ComplexType(NONE, false);
     if (currentContext != NULL)
     {
         resultType = getLocalVarType(id);
@@ -384,7 +406,7 @@ ComplexType *ArrayAccessExpression::getType()
     if (this->index->getType()->primitiveType != INT)
     {
         cerr << "indice debe ser de tipo entero linea:" << this->line << " column: " << this->column << endl;
-        return new ComplexType((PrimitiveType)NONE, false);
+        return new ComplexType(NONE, false);
     }
     return this->id->getType(); // probar
 }
@@ -395,19 +417,19 @@ ComplexType *MethodCallExpression::getType()
     if (method == NULL)
     {
         cerr << this->id->id << " no declarado linea: " << this->line << " column " << this->column << endl;
-        return new ComplexType((PrimitiveType)NONE, false);
+        return new ComplexType(NONE, false);
     }
 
     if (method->parameters->size() > this->args->size())
     {
         cerr << "Muy pocos argumentos para el método: " << this->id->id << " linea: " << this->line << " column " << this->column << endl;
-        return new ComplexType((PrimitiveType)NONE, false);
+        return new ComplexType(NONE, false);
     }
 
     if (method->parameters->size() < this->args->size())
     {
         cerr << "Muchos argumentos para el método: " << this->id->id << " linea: " << this->line << " column " << this->column << endl;
-        return new ComplexType((PrimitiveType)NONE, false);
+        return new ComplexType(NONE, false);
     }
     // validación de tipo
     list<VarDeclarationStatement *>::iterator paramsIt = method->parameters->begin();
@@ -417,7 +439,7 @@ ComplexType *MethodCallExpression::getType()
         if ((*argsIt)->getType()->primitiveType != (*paramsIt)->type->primitiveType)
         {
             cerr << "Tipo de dato incorrecto en parámetros, se esperaba tipo: "
-                 << getTypeAsString((*paramsIt)->type->primitiveType)
+                 << getTypeAsString((*paramsIt)->type)
                  << " se obtuvo: " << getTypeAsString((*argsIt)->getType())
                  << " linea: " << this->line << " column " << this->column << endl;
             return new ComplexType((PrimitiveType)NONE, false);
@@ -428,40 +450,15 @@ ComplexType *MethodCallExpression::getType()
     return method->returnType;
 }
 
-PrimitiveType IncreDecreExpression::getType()
+ComplexType *IncreDecreExpression::getType()
 {
     return this->expr->getType();
 }
 
-PrimitiveType ArrayArgExpression::getType()
+ComplexType *ArrayArgExpression::getType()
 {
-    return this->getType(); // no se
+    return this->getType();
 }
-
-#define GET_TYPE_BINARY_EXPR(name)                                                                                                                                                   \
-    ComplexType *name##Expr::getType()                                                                                                                                               \
-    {                                                                                                                                                                                \
-        string leftType = getTypeAsString(this->left->getType());                                                                                                                    \
-        string rightType = getTypeAsString(this->right->getType());                                                                                                                  \
-        PrimitiveType type = exprResultTypes[leftType + "," + rightType];                                                                                                            \
-        if (type == 0)                                                                                                                                                               \
-        {                                                                                                                                                                            \
-            cerr << "El tipo de dato " << leftType << " no puede ser operado con el tipo de dato " << rightType << " linea: " << this->line << " columna: " << this->column << endl; \
-        }                                                                                                                                                                            \
-        return new ComplexType(type, this->left->getType()->isArray || this->right->getType()->isArray);                                                                             \
-    }
-
-#define GET_TYPE_BINARY_EXPR_BOOL(name)                                                                                                                                              \
-    ComplexType *name##Expression::getType()                                                                                                                                        \
-    {                                                                                                                                                                                \
-        string leftType = getTypeAsString(this->left->getType());                                                                                                                    \
-        string rightType = getTypeAsString(this->right->getType());                                                                                                                  \
-         if (leftType != rightType)                                                                                                                                                   \
-        {                                                                                                                                                                            \
-            cerr << "El tipo de dato " << leftType << " no puede ser operado con el tipo de dato " << rightType << " linea: " << this->line << " columna: " << this->column << endl; \
-        }                                                                                                                                                                            \
-        return new ComplexType(BOOLEAN, false);                                                                                                                                                          \
-    }
 
 GET_TYPE_BINARY_EXPR(Mult);
 GET_TYPE_BINARY_EXPR(Div);
@@ -481,7 +478,7 @@ GET_TYPE_BINARY_EXPR_BOOL(Neq);
 /*Evaluate Semantic of Declarations*/
 void VarDeclarationStatement::evaluateSemantic()
 {
-    if (getVarType(this->id) != NONE)
+    if (getVarType(this->id)->primitiveType != NONE)
     {
         cerr << "Ya existe una variable con el nombre " << (this->id) << " linea " << this->line << " columna: " << this->column << endl;
         return;
@@ -493,7 +490,7 @@ void VarDeclarationStatement::evaluateSemantic()
         cerr << "El fin de un arreglo debe ser mayor a 0 linea " << this->line << " columna: " << this->column << endl;
         return;
     }
-    currentContext->vars[this->id] = this->type->primitiveType;
+    currentContext->vars[this->id] = this->type;
 }
 
 void VarDeclAssignStatement::evaluateSemantic()
@@ -510,7 +507,7 @@ void ArrayVarDeclAssignStatement::evaluateSemantic()
 
 void PrintStatement::evaluateSemantic()
 {
-    PrimitiveType type = this->expression->getType();
+    PrimitiveType type = this->expression->getType()->primitiveType;
     if (type != STRING)
     {
         cerr << "Solo se permite imprimir tipo de dato STRING linea:" << this->line << " columna: " << this->column << endl;
@@ -520,7 +517,7 @@ void PrintStatement::evaluateSemantic()
 
 void IfStatement::evaluateSemantic()
 {
-    if (this->expression->getType() != BOOLEAN)
+    if (this->expression->getType()->primitiveType != BOOLEAN)
     {
         cerr << "El if requiere una expresion booleana linea: " << this->line << " columna " << this->column << endl;
         return;
@@ -536,14 +533,14 @@ void IfStatement::evaluateSemantic()
 
 void AssignationStatement::evaluateSemantic()
 {
-    if (this->isArray && this->index->getType() != INT)
+    if (this->isArray && this->index->getType()->primitiveType != INT)
     {
         cerr << "El indice en el arreglo debe ser un entero linea: " << this->line << " columna: " << this->column << endl;
         return;
     }
-    PrimitiveType varType = getVarType(this->id);
-    PrimitiveType exprType = this->expression->getType();
-    if (varType != exprType)
+    ComplexType *varType = getVarType(this->id);
+    ComplexType *exprType = this->expression->getType();
+    if (varType->primitiveType != exprType->primitiveType)
     {
         cerr << "No se puede asignar " << getTypeAsString(exprType) << " a la variable de tipo " << getTypeAsString(varType) << " linea " << this->line << " columna: " << this->column << endl;
         return;
@@ -557,15 +554,15 @@ void CommentStatement::evaluateSemantic()
 
 void ForStatement::evaluateSemantic()
 {
-    PrimitiveType varType = getVarType(this->iteratorId);
-    PrimitiveType fromExprType = this->fromExpr->getType();
-    PrimitiveType toExprType = this->toExpr->getType();
-    if (varType != fromExprType)
+    ComplexType *varType = getVarType(this->iteratorId);
+    ComplexType *fromExprType = this->fromExpr->getType();
+    ComplexType *toExprType = this->toExpr->getType();
+    if (varType->primitiveType != fromExprType->primitiveType)
     {
         cerr << "No se puede asignar " << getTypeAsString(fromExprType) << " a la variable de tipo " << getTypeAsString(varType) << " linea " << this->line << " columna: " << this->column << endl;
         return;
     }
-    if (varType != toExprType)
+    if (varType->primitiveType != toExprType->primitiveType)
     {
         cerr << "No se puede asignar " << getTypeAsString(toExprType) << " a la variable de tipo " << getTypeAsString(varType) << " linea " << this->line << " columna: " << this->column << endl;
         return;
@@ -587,16 +584,16 @@ void ExpressionStatement::evaluateSemantic()
 
 void IncreDecreStatement::evaluateSemantic()
 {
-    if (this->expr->getType() != INT && this->expr->getType() != FLOAT)
+    if (this->expr->getType()->primitiveType != INT && this->expr->getType()->primitiveType != FLOAT)
     {
-        cerr << "Variable debe ser de tipo entero linea: " << this->line << " columna: " << this->column << " tipo de dato recibido: " << this->expr->getType() << endl;
+        cerr << "Variable debe ser de tipo entero linea: " << this->line << " columna: " << this->column << " tipo de dato recibido: " << getTypeAsString(this->expr->getType()) << endl;
         return;
     }
 }
 
 void WhileStatement::evaluateSemantic()
 {
-    if (this->expr->getType() != BOOLEAN)
+    if (this->expr->getType()->primitiveType != BOOLEAN)
     {
         cerr << "El while requiere una expresion booleana línea: " << this->line << " columna " << this->column << endl;
         return;
@@ -632,7 +629,7 @@ void FunctionStatement::evaluateSemantic()
         cerr << "Ya existe un método con el nombre " << this->id << " linea " << this->line << " columna " << this->column << endl;
         return;
     }
-    methods[this->id] = new MethodInformation(this->returnType->primitiveType, this->params);
+    methods[this->id] = new MethodInformation(this->returnType, this->params);
     pushContext();
     this->block->evaluateSemantic();
     list<VarDeclarationStatement *>::iterator itStmt = this->params->begin();

@@ -3,7 +3,7 @@ fun main() {
     list[0]="andrea";
     list[1]="angella";
     list[2]="nicole"
-    for(element in list){
+    for(element in 0 until 10){
         println(element)
     }
      var x: Int = 2;

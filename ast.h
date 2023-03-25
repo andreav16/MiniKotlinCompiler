@@ -3,7 +3,6 @@
 #include <list>
 #include <vector>
 #include "CodeContext.h"
-#include "constants.h"
 
 using namespace std;
 
@@ -164,6 +163,7 @@ public:
     }
     Expression * left;
     Expression * right;
+    virtual ComplexType* getType() = 0;
     virtual void print() = 0;
 };
 

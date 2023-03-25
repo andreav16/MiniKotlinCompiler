@@ -78,14 +78,14 @@
 program: functions 
         {
            $$ = new BlockFunctionStatement($1, line, column);
-           //$$->evaluateSemantic();
-           string code = $$->generateCode();
-           assemblyResult.code += code;
-           writeFile("result.asm");
+           $$->evaluateSemantic();
+           //string code = $$->generateCode();
+          // assemblyResult.code += code;
+           //writeFile("result.asm");
         }
         ;
 
-functions: func functions { $$ = $2; $$->push_back($1); }
+functions: func functions { $$ = $2; $$->push_front($1); }
         | /*eps*/ { $$ = new list<Statement*>; }
         ;
 
@@ -98,7 +98,7 @@ func: KW_FUN TK_ID '(' params ')' ':' func_type block { $$ = new FunctionStateme
 block: '{' decls_stmts '}' { $$ = new BlockStatement($2, line, column); }
         ;
 
-decls_stmts: decls_or_stmts decls_stmts { $$ = $2; $$->push_back($1); }
+decls_stmts: decls_or_stmts decls_stmts { $$ = $2; $$->push_front($1); }
             | /*epsilon*/ { $$ = new list<Statement *>; }
             ;
 
