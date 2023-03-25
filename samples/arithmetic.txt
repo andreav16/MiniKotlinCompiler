@@ -5,17 +5,22 @@ fun main() {
     var result: Float
 
     result = number1 + number2
-    println("number1 + number2 = $result")
+    println("resultado de suma")
+    println(result)
 
     result = number1 - number2
-    println("number1 - number2 = $result")
+     println("resultado de resta")
+    println(result)
 
     result = number1 * number2
-    println("number1 * number2 = $result")
+     println("resultado de multiplicacion")
+    println(result)
 
     result = number1 / number2
-    println("number1 / number2 = $result")
+     println("resultado de division")
+    println(result)
 
     result = number1 % number2
-    println("number1 % number2 = $result")
+    println("resultado de residuo")
+    println(result)
 }

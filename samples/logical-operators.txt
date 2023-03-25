@@ -1,40 +1,32 @@
-fun main() {
-    
-    val a: Int = 10
-    val b: Int = 9
-    val c: Int = 1
-    val result: Boolean
-
-    // result is true is a is largest
-    result = (a>b) && (a>c) || (a==c) // result = (a>b) and (a>c)
-    println(result)
-}
-
 fun f(x: Int): Int {
-    var cur: Float = x + 1
-    while (cur % 10 == 0) cur = 10
+    var cur : Int = x + 1
+    while (cur % 10 == 0) 
+    {
+      cur = cur / 10
+    }
     return cur
 }
 
 fun main() {
 
-    val num = Array<Int>(3){0};
-    val toFind: Int = 3
-    var found: Boolean = false
-
-    for (n in num) {
+    val num = Array<Int>(5){0};
+    var i : Int;
+    for(i in 0 until 4){
+        num[i] = i + 1;
+    }
+    val toFind : Int = 3
+    var found : Boolean = false
+    var n : Int
+    for (i in 0 until 4) {
         if (n == toFind) {
             found = true
-            break
         }
     }
 
-    if (found)
-    {
-        println("$toFind is found.")
+    if (found){
+        println("3 is found.")
+    }else{
+        println("3 is not found.")
     }
-    else
-    {
-        println("$toFind is not found.")
-    }
+        
 }

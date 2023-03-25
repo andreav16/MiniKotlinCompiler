@@ -1,22 +1,31 @@
-fun bubbleSortWithSteps(numbers:Array<Int>) {
-    println("Initial numbers: [%s]".format(numbers.joinToString(separator = ", ")))
-    for (pass in 0 until (numbers.size - 1)) {
-        // A single pass of bubble sort
-        for (currentPosition in 0 until (numbers.size - pass - 1)) {
-            // This is a single step
-            print("Pass-%d-Step-%d: Comparing elements at position %d(%d) and %d(%d). ".format(pass, currentPosition,
-                    currentPosition, numbers[currentPosition], (currentPosition + 1), numbers[currentPosition + 1]))
-            if (numbers[currentPosition] > numbers[currentPosition + 1]) {
-                println("They are in wrong order, swap them")
-                val tmp = numbers[currentPosition]
-                numbers[currentPosition] = numbers[currentPosition + 1]
-                numbers[currentPosition + 1] = tmp
-            } else {
-                println("They are in correct order, do not swap them")
+fun bubbleSort(arr:Array<Int>, size:Int):Array<Int>{
+    var swap: Boolean = true
+    while(swap){
+        swap = false
+        var i: Int;
+        for(i in 0 until size-1){
+            if(arr[i] > arr[i+1]){
+                val temp: Int = arr[i]
+                arr[i] = arr[i+1]
+                arr[i + 1] = temp
+
+                swap = true
             }
-            println("Numbers after Pass-%d-Step-%d: [%s]".format(pass, currentPosition, numbers.joinToString(separator =
-            ", ")))
         }
     }
-    println("Sorted numbers: [%s]".format(numbers.joinToString(separator = ", ")))
+    var i: Int;
+     for(i in 0 until i){
+        println(arr[i])
+    }
+    return arr
+}
+
+fun main() {
+    val list = Array<Int>(5){0};
+    var i: Int;
+    for(i in 0 until 5){
+        list[i] = 10-i;
+    }
+    bubbleSort(list, 5);
+   
 }

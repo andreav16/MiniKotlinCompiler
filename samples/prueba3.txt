@@ -2,7 +2,7 @@ fun mul(arr:Array<Int>, size:Int): Int {
     var number: Int = 5
     return number;
 }
-fun mult(a: String, b: String, c:String, d:String): String {
+fun mult(a: String, b: String, c:String, d:String): Array<String> {
     var number: Int = read.nextInt();
     return "Hola"
 }

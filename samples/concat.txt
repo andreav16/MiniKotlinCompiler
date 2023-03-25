@@ -1,9 +1,7 @@
 fun main() {
 
-    val start: String = "Talk is cheap. "
-    val middle: String = "Show me the code. "
-    val end: String = "- Linus Torvalds"
+    var start: String
+    start = "hola"
 
-    val result: String = start + middle + end
-    println(result)
+    println(start);
 }

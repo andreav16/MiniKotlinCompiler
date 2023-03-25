@@ -245,7 +245,7 @@ ComplexType *UnaryExpression::getType()
     {
         cerr << "No se puede aplicar el operador NOT a una expresion no booleana linea: " << this->line << " columna: " << this->column << endl;
     }
-    else if (this->op == NEG && (type->primitiveType != INT || type->primitiveType != FLOAT)) //ESTO YA NO SE USA EN EL PARSER
+    else if (this->op == NEG && (type->primitiveType != INT || type->primitiveType != FLOAT)) // ESTO YA NO SE USA EN EL PARSER
     {
         cerr << "No se puede aplicar el operador NEG a una expresion no booleana linea: " << this->line << " columna: " << this->column << endl;
     }
@@ -505,14 +505,14 @@ void VarDeclarationStatement::evaluateSemantic()
 
 void VarDeclAssignStatement::evaluateSemantic()
 {
-    //Declaration
+    // Declaration
     if (getVarType(this->decl->id)->primitiveType != NONE)
     {
         cerr << "Ya existe una variable con el nombre " << (this->decl->id) << " linea " << this->line << " columna: " << this->column << endl;
         return;
     }
     currentContext->vars[this->decl->id] = this->decl->type;
-    //Assignation
+    // Assignation
     ComplexType *varType = getVarType(this->decl->id);
     ComplexType *exprType = this->expr->getType();
     if (varType->primitiveType != exprType->primitiveType)
@@ -527,24 +527,24 @@ void ArrayVarDeclAssignStatement::evaluateSemantic()
     PrimitiveType declType = getVarType(this->id)->primitiveType;
     if (declType != NONE)
     {
-        cerr<<"Ya existe una variable con el nombre "<< this->id <<" linea " <<this->line<<" columna: "<<this->column<<endl;
+        cerr << "Ya existe una variable con el nombre " << this->id << " linea " << this->line << " columna: " << this->column << endl;
         return;
     }
-    
+
     if (this->type->isArray && this->size <= 0)
     {
-        cerr<<"El tamanio de un arreglo debe ser mayor a 0. Linea " <<this->line<<" columna: "<<this->column<<endl;
+        cerr << "El tamanio de un arreglo debe ser mayor a 0. Linea " << this->line << " columna: " << this->column << endl;
         return;
     }
     if (this->initializer->getType()->primitiveType != this->type->primitiveType)
     {
-        cerr <<"No se puede inicializar un arreglo de tipo " <<  getTypeAsString(this->type) << " con el tipo " << getTypeAsString(this->initializer->getType())
-            << " linea " <<this->line<<" columna: "<<this->column<<endl;
+        cerr << "No se puede inicializar un arreglo de tipo " << getTypeAsString(this->type) << " con el tipo " << getTypeAsString(this->initializer->getType())
+             << " linea " << this->line << " columna: " << this->column << endl;
         return;
     }
-    ArrayType * arrayType = static_cast<ArrayType *>(this->type);
+    ArrayType *arrayType = static_cast<ArrayType *>(this->type);
     arrayType->size = this->size;
-    currentContext->vars[this->id] = arrayType;  
+    currentContext->vars[this->id] = arrayType;
 }
 
 /*Evaluate Semantic of Statements*/
@@ -555,7 +555,7 @@ void PrintStatement::evaluateSemantic()
     if (type != STRING && type != INT && type != FLOAT)
     {
         cerr << "Solo se permite imprimir tipo de dato STRING, INT o FLOAT, tipo de dato encontrado: " << type
-            << ". Linea:" << this->line << " columna: " << this->column << endl;
+             << ". Linea:" << this->line << " columna: " << this->column << endl;
         return;
     }
 }
@@ -620,13 +620,16 @@ void ForStatement::evaluateSemantic()
 void ReturnStatement::evaluateSemantic()
 {
     // validar que el expression->getType sea el mismo que el tipo de la función en la que está
-    map<string, MethodInformation*>::reverse_iterator methodIt = methods.rbegin();
-    if (methodIt != methods.rend()){
+    map<string, MethodInformation *>::reverse_iterator methodIt = methods.rbegin();
+    if (methodIt != methods.rend())
+    {
         cout << (*methodIt).first << endl;
     }
-    // if (this->expression->getType()->primitiveType != ){
-
-    // }
+    if (this->expression->getType()->primitiveType != methodIt->second->returnType->primitiveType)
+    {
+        cerr << "No se puede retornar tipo " << getTypeAsString(this->expression->getType()) << " en funcion de tipo" << getTypeAsString(methodIt->second->returnType) << " linea: " << this->line << " columna: " << this->column << endl;
+        return;
+    }
 }
 
 void ExpressionStatement::evaluateSemantic()
@@ -760,10 +763,11 @@ string newLabel(string prefix)
     return label.str();
 }
 
-void StringExpression::generateCode(CodeContext &context){
+void StringExpression::generateCode(CodeContext &context)
+{
     string label = newLabel("string");
     stringstream code;
-    code << label<<": .asciiz "<< this->value<<endl;
+    code << label << ": .asciiz " << this->value << endl;
     context.code = "";
     context.place = label;
     context.type = new ComplexType((PrimitiveType)STRING, false);
@@ -776,7 +780,7 @@ void IntExpression::generateCode(CodeContext &context)
 {
     stringstream code;
     string temp = getIntTemp();
-    code<<"li "<<temp<<", "<< this->value<<endl;
+    code << "li " << temp << ", " << this->value << endl;
     context.code = code.str();
     context.place = temp;
     context.type = new ComplexType((PrimitiveType)INT, false);
@@ -786,26 +790,29 @@ void FloatExpression::generateCode(CodeContext &context)
 {
     stringstream code;
     string temp = getFloatTemp();
-    code<<"li.s "<<temp<<", "<< this->value<<endl;
+    code << "li.s " << temp << ", " << this->value << endl;
     context.code = code.str();
     context.place = temp;
     context.type = new ComplexType((PrimitiveType)FLOAT, false);
 }
 
-void CharExpression::generateCode(CodeContext &context){
+void CharExpression::generateCode(CodeContext &context)
+{
     stringstream code;
     string temp = getIntTemp();
-    code<<"li "<<temp<<", '"<< this->value<<"'"<<endl;
+    code << "li " << temp << ", '" << this->value << "'" << endl;
     context.code = code.str();
     context.place = temp;
     context.type = new ComplexType((PrimitiveType)CHAR, false);
 }
 
-void BooleanExpression::generateCode(CodeContext &context){
-    //No se probará
+void BooleanExpression::generateCode(CodeContext &context)
+{
+    // No se probará
 }
 
-void IdExpression::generateCode(CodeContext &context){
+void IdExpression::generateCode(CodeContext &context)
+{
     if (codeGenerationVars.find(this->id) == codeGenerationVars.end())
     {
         context.globalVarName = this->id;
@@ -813,40 +820,48 @@ void IdExpression::generateCode(CodeContext &context){
         if (globalVars[this->id]->isArray)
         {
             string temp = getIntTemp();
-            context.code = "la " + temp +", "+ this->id + "\n";
+            context.code = "la " + temp + ", " + this->id + "\n";
             context.place = temp;
         }
-        if (globalVars[this->id]->primitiveType ==  FLOAT)
+        if (globalVars[this->id]->primitiveType == FLOAT)
         {
             string floatTemp = getFloatTemp();
             context.place = floatTemp;
-            context.code = "l.s "+floatTemp + ", " + this->id +"\n";
-        }else if (globalVars[this->id]->primitiveType == INT){
+            context.code = "l.s " + floatTemp + ", " + this->id + "\n";
+        }
+        else if (globalVars[this->id]->primitiveType == INT)
+        {
             string intTemp = getIntTemp();
             context.place = intTemp;
-            context.code = "lw "+intTemp + ", " + this->id +"\n";
+            context.code = "lw " + intTemp + ", " + this->id + "\n";
         }
-    }else{
+    }
+    else
+    {
         context.type = codeGenerationVars[this->id]->type;
         if (codeGenerationVars[this->id]->type->primitiveType == FLOAT && !codeGenerationVars[this->id]->type->isArray)
         {
             string floatTemp = getFloatTemp();
             context.place = floatTemp;
-            context.code = "l.s "+floatTemp + ", " + to_string(codeGenerationVars[this->id]->offset) +"($sp)\n";
+            context.code = "l.s " + floatTemp + ", " + to_string(codeGenerationVars[this->id]->offset) + "($sp)\n";
         }
-        else if (codeGenerationVars[this->id]->type->primitiveType == INT && !codeGenerationVars[this->id]->type->isArray){
+        else if (codeGenerationVars[this->id]->type->primitiveType == INT && !codeGenerationVars[this->id]->type->isArray)
+        {
             string intTemp = getIntTemp();
             context.place = intTemp;
-            context.code = "lw "+intTemp + ", " + to_string(codeGenerationVars[this->id]->offset) +"($sp)\n";
-        }else if(codeGenerationVars[this->id]->type->isArray){
-          string intTemp = getIntTemp();
-          context.code = "la "+ intTemp + to_string(codeGenerationVars[this->id]->offset) +"($sp)\n";
-          context.place = intTemp;
+            context.code = "lw " + intTemp + ", " + to_string(codeGenerationVars[this->id]->offset) + "($sp)\n";
+        }
+        else if (codeGenerationVars[this->id]->type->isArray)
+        {
+            string intTemp = getIntTemp();
+            context.code = "la " + intTemp + to_string(codeGenerationVars[this->id]->offset) + "($sp)\n";
+            context.place = intTemp;
         }
     }
 }
 
-void ArrayAccessExpression::generateCode(CodeContext &context){
+void ArrayAccessExpression::generateCode(CodeContext &context)
+{
     CodeContext indexCode;
     stringstream code;
     this->index->generateCode(indexCode);
@@ -854,47 +869,483 @@ void ArrayAccessExpression::generateCode(CodeContext &context){
 
     string temp = getIntTemp();
     string address = getIntTemp();
-    code<< indexCode.code <<endl
-    <<"li $a0, 4"<<endl
-    <<"mult $a0, "<<indexCode.place<<endl
-    <<"mflo "<< temp<< endl;
+    code << indexCode.code << endl
+         << "li $a0, 4" << endl
+         << "mult $a0, " << indexCode.place << endl
+         << "mflo " << temp << endl;
 
     if (codeGenerationVars.find(this->id->id) == codeGenerationVars.end())
     {
-        code <<"la "<<address<<", "<<this->id->id<<endl
-        <<"add "<<temp<<", "<<address<<", "<<temp<<endl;
+        code << "la " << address << ", " << this->id->id << endl
+             << "add " << temp << ", " << address << ", " << temp << endl;
         releaseRegister(address);
         if (globalVars[this->id->id]->primitiveType == INT)
         {
-            code<< "lw "<< temp<<", 0("<<temp<<")"<<endl;
+            code << "lw " << temp << ", 0(" << temp << ")" << endl;
             context.place = temp;
             context.type = new ComplexType(INT, false);
-        }else{
+        }
+        else
+        {
             string value = getFloatTemp();
-            code<< "l.s "<< value<<", 0("<<temp<<")"<<endl;
+            code << "l.s " << value << ", 0(" << temp << ")" << endl;
             context.place = value;
             context.type = new ComplexType(FLOAT, false);
             releaseRegister(temp);
         }
-    }else{
-        if(!codeGenerationVars[this->id->id]->isParameter){
-            code<<"la "<<address<<", "<<codeGenerationVars[this->id->id]->offset<<"($sp)"<<endl;
-        }else{
-            code<<"lw "<<address<<", "<<codeGenerationVars[this->id->id]->offset<<"($sp)"<<endl;
+    }
+    else
+    {
+        if (!codeGenerationVars[this->id->id]->isParameter)
+        {
+            code << "la " << address << ", " << codeGenerationVars[this->id->id]->offset << "($sp)" << endl;
         }
-        code<<"add "<<temp<<", "<<address<<", "<<temp<<endl;
+        else
+        {
+            code << "lw " << address << ", " << codeGenerationVars[this->id->id]->offset << "($sp)" << endl;
+        }
+        code << "add " << temp << ", " << address << ", " << temp << endl;
         if (codeGenerationVars[this->id->id]->type->primitiveType == INT)
         {
-            code<<"lw "<<temp<<", 0("<<temp<<")"<<endl;
+            code << "lw " << temp << ", 0(" << temp << ")" << endl;
             context.place = temp;
             context.type = codeGenerationVars[this->id->id]->type;
-        }else{
+        }
+        else
+        {
             string value = getFloatTemp();
-            code<<"l.s "<<value<<", 0("<<temp<<")"<<endl;
+            code << "l.s " << value << ", 0(" << temp << ")" << endl;
             context.place = value;
             context.type = codeGenerationVars[this->id->id]->type;
             releaseRegister(temp);
         }
     }
     context.code = code.str();
+}
+
+void MethodCallExpression::generateCode(CodeContext &context)
+{
+}
+
+void IncreDecreExpression::generateCode(CodeContext &context)
+{
+}
+
+void UnaryExpression::generateCode(CodeContext &context)
+{
+}
+
+#define GEN_CODE_BINARY_EXPR(name) \
+    void name##Expression::generateCode(CodeContext &context){};
+
+string intArithmetic(CodeContext &leftCode, CodeContext &rightCode, CodeContext &resultCode, char op)
+{
+    resultCode.place = getIntTemp();
+    stringstream code;
+    switch (op)
+    {
+    case '+':
+        code << "add " << resultCode.place << ", " << leftCode.place << ", " << rightCode.place << endl;
+        break;
+    case '-':
+        code << "sub " << resultCode.place << ", " << leftCode.place << ", " << rightCode.place << endl;
+        break;
+    case '*':
+        code << "mult " << leftCode.place << ", " << rightCode.place << endl
+             << "mflo " << resultCode.place;
+        break;
+    case '/':
+        code << "div " << leftCode.place << ", " << rightCode.place << endl
+             << "mflo " << resultCode.place;
+        break;
+    default:
+        break;
+    }
+    return code.str();
+}
+
+string floatArithmetic(CodeContext &leftCode, CodeContext &rightCode, CodeContext &resultCode, char op)
+{
+    resultCode.place = getFloatTemp();
+    stringstream code;
+    switch (op)
+    {
+    case '+':
+        code << "add.s " << resultCode.place << ", " << leftCode.place << ", " << rightCode.place << endl;
+        break;
+    case '-':
+        code << "sub.s " << resultCode.place << ", " << leftCode.place << ", " << rightCode.place << endl;
+        break;
+    case '*':
+        code << "mul.s " << resultCode.place << ", " << leftCode.place << ", " << rightCode.place << endl;
+        break;
+    case '/':
+        code << "div.s " << resultCode.place << ", " << leftCode.place << ", " << rightCode.place << endl;
+        break;
+    default:
+        break;
+    }
+    return code.str();
+}
+
+void toFloat(CodeContext &context)
+{
+    string floatTemp = getFloatTemp();
+    stringstream code;
+    code << context.code
+         << "mtc1 " << context.place << ", " << floatTemp << endl
+         << "cvt.s.w " << floatTemp << ", " << floatTemp << endl;
+    releaseRegister(context.place);
+    context.place = floatTemp;
+    context.type = new ComplexType(FLOAT, false);
+    context.code = code.str();
+}
+
+string concatString(CodeContext &leftCode, CodeContext &resultCode, char op)
+{
+    resultCode.place = getIntTemp();
+    stringstream code;
+    if (op == '+')
+    {
+        code << "la " << resultCode.place << ", " << leftCode.place << endl;
+    }
+    return code.str();
+}
+
+#define GEN_ARIT_CODE_BINARY_EXPR(name, op)                                                         \
+    void name##Expression::generateCode(CodeContext &context)                                       \
+    {                                                                                               \
+        CodeContext leftCode, rightCode;                                                            \
+        stringstream code;                                                                          \
+        this->left->generateCode(leftCode);                                                         \
+        this->right->generateCode(rightCode);                                                       \
+        if (leftCode.type->primitiveType == INT && rightCode.type->primitiveType == INT)            \
+        {                                                                                           \
+            context.type = leftCode.type;                                                           \
+            releaseRegister(leftCode.place);                                                        \
+            releaseRegister(rightCode.place);                                                       \
+            code << leftCode.code << endl                                                           \
+                 << rightCode.code << endl                                                          \
+                 << intArithmetic(leftCode, rightCode, context, op) << endl;                        \
+        }                                                                                           \
+        else if (leftCode.type->primitiveType == STRING && rightCode.type->primitiveType == STRING) \
+        {                                                                                           \
+            context.type = leftCode.type;                                                           \
+            releaseRegister(leftCode.place);                                                        \
+            releaseRegister(rightCode.place);                                                       \
+            code << leftCode.code << endl                                                           \
+                 << concatString(leftCode, context, op) << endl;                                    \
+        }                                                                                           \
+        else                                                                                        \
+        {                                                                                           \
+            context.type = new ComplexType(FLOAT, false);                                           \
+            if (leftCode.type->primitiveType != FLOAT)                                              \
+                toFloat(leftCode);                                                                  \
+            if (rightCode.type->primitiveType != FLOAT)                                             \
+                toFloat(rightCode);                                                                 \
+            releaseRegister(leftCode.place);                                                        \
+            releaseRegister(rightCode.place);                                                       \
+            code << leftCode.code << endl                                                           \
+                 << rightCode.code << endl                                                          \
+                 << floatArithmetic(leftCode, rightCode, context, op) << endl;                      \
+        }                                                                                           \
+        context.code = code.str();                                                                  \
+    }
+
+GEN_ARIT_CODE_BINARY_EXPR(Mult, '*');
+GEN_ARIT_CODE_BINARY_EXPR(Div, '/');
+GEN_ARIT_CODE_BINARY_EXPR(Mod, '%');
+GEN_ARIT_CODE_BINARY_EXPR(Add, '+');
+GEN_ARIT_CODE_BINARY_EXPR(Sub, '-');
+
+// Preguntar range
+GEN_CODE_BINARY_EXPR(Range);
+GEN_CODE_BINARY_EXPR(Gt);
+GEN_CODE_BINARY_EXPR(Lt);
+GEN_CODE_BINARY_EXPR(Gte);
+GEN_CODE_BINARY_EXPR(Lte);
+GEN_CODE_BINARY_EXPR(Or);
+GEN_CODE_BINARY_EXPR(And);
+GEN_CODE_BINARY_EXPR(Eq);
+GEN_CODE_BINARY_EXPR(Neq);
+
+void ParamExpression::generateCode(CodeContext &context)
+{
+}
+
+void ArrayArgExpression::generateCode(CodeContext &context)
+{
+}
+
+void ReadExpression::generateCode(CodeContext &context)
+{
+}
+
+string VarDeclarationStatement::generateCode()
+{
+    codeGenerationVars[this->id] = new CodeGenerationVarInfo(false, this->type, globalStackpointer);
+    if (!this->type->isArray)
+    {
+        globalStackpointer += 4;
+    }
+    else
+    {
+        // falta lógica arreglos
+    }
+
+    return "";
+}
+
+string VarDeclAssignStatement::generateCode()
+{
+    return "";
+}
+
+string ArrayVarDeclAssignStatement::generateCode()
+{
+    return "";
+}
+
+string PrintStatement::generateCode()
+{
+    stringstream code;
+    CodeContext exprContext;
+    cout<<"linea:"<<this->expression->line;
+    this->expression->generateCode(exprContext);
+    cout << "expresion llega" << exprContext.place;
+    if (exprContext.type->primitiveType == INT)
+    {
+        code << "move $a0, " << exprContext.place << endl
+             << "li $v0, 1" << endl;
+    }
+    else if (exprContext.type->primitiveType == FLOAT)
+    {
+        code << "mov.s $f12, " << exprContext.place << endl
+             << "li $v0, 2" << endl;
+    }
+    else if (exprContext.type->primitiveType == STRING)
+    {
+        cout<<"ahora "<<exprContext.place;
+        code << "la $a0, " << exprContext.place << endl
+             << "li $v0, 4" << endl;
+    }
+    else if (exprContext.type->primitiveType == CHAR)
+    {
+        code << "move $a0, " << exprContext.place << endl
+             << "li $v0, 11" << endl;
+    }
+
+    code << "syscall" << endl;
+    code << "la $a0, nextline" << endl
+         << "li $v0, 4" << endl
+         << "syscall" << endl;
+    return code.str();
+}
+
+string IfStatement::generateCode()
+{
+    return "";
+}
+
+string AssignationStatement::generateCode()
+{
+    CodeContext rightSideCode;
+    stringstream code;
+    this->expression->generateCode(rightSideCode);
+    code << rightSideCode.code;
+    if (codeGenerationVars.find(this->id) == codeGenerationVars.end())
+    {
+        if (this->isArray)
+        {
+            CodeContext indexCode;
+            this->index->generateCode(indexCode);
+            string temp = getIntTemp();
+            string address = getIntTemp();
+            releaseRegister(indexCode.place);
+            code << indexCode.code << endl
+                 << "li $a0, 4" << endl
+                 << "mult $a0, " << indexCode.place << endl
+                 << "mflo " << temp << endl;
+            code << "la " << address << ", " << this->id << endl;
+            code << "add " << temp << ", " << temp << ", " << address << endl;
+            code << rightSideCode.code << endl
+                 << "sw " << rightSideCode.place << ", 0(" << temp << ")" << endl;
+            releaseRegister(temp);
+            releaseRegister(address);
+            releaseRegister(indexCode.place);
+        }
+        else if (rightSideCode.type->primitiveType == INT)
+        {
+            code << "sw " << rightSideCode.place << ", " << this->id << endl;
+        }
+        else if (rightSideCode.type->primitiveType == FLOAT)
+        {
+            code << "s.s " << rightSideCode.place << ", " << this->id << endl;
+        }
+        else if (rightSideCode.type->primitiveType == STRING)
+        {
+            cout << "string place " << rightSideCode.place << endl;
+            cout << "id: " << this->id << endl;
+        }
+    }
+    else
+    {
+        if (this->isArray)
+        {
+            CodeContext indexCode;
+            this->index->generateCode(indexCode);
+            string temp = getIntTemp();
+            string address = getIntTemp();
+            releaseRegister(indexCode.place);
+            code << indexCode.code << endl
+                 << "li $a0, 4" << endl
+                 << "mult $a0, " << indexCode.place << endl
+                 << "mflo " << temp << endl;
+            if (!codeGenerationVars[this->id]->isParameter)
+            {
+                code << "la " << address << ", " << codeGenerationVars[this->id]->offset << "($sp)" << endl;
+            }
+            else
+            {
+                code << "lw " << address << ", " << codeGenerationVars[this->id]->offset << "($sp)" << endl;
+            }
+            code << "add " << temp << ", " << temp << ", " << address << endl;
+            code << rightSideCode.code << endl
+                 << "sw " << rightSideCode.place << ", 0(" << temp << ")" << endl;
+            releaseRegister(temp);
+            releaseRegister(address);
+            releaseRegister(indexCode.place);
+        }
+        else if (rightSideCode.type->primitiveType == INT)
+        {
+            code << "sw " << rightSideCode.place << ", " << codeGenerationVars[this->id]->offset << "($sp)" << endl;
+        }
+        else if (rightSideCode.type->primitiveType == FLOAT)
+        {
+            code << "s.s " << rightSideCode.place << ", " << codeGenerationVars[this->id]->offset << "($sp)" << endl;
+        }
+        else if (rightSideCode.type->primitiveType == STRING)
+        {
+            cout << "string place " << rightSideCode.place << endl;
+            cout << "id: " << this->id << endl;
+        }
+    }
+    releaseRegister(rightSideCode.place);
+    return code.str();
+}
+
+string CommentStatement::generateCode()
+{
+    return "";
+}
+
+string ForStatement::generateCode()
+{
+    return "";
+}
+
+string ReturnStatement::generateCode()
+{
+    return "";
+}
+
+string ExpressionStatement::generateCode()
+{
+    CodeContext exprCode;
+    this->expr->generateCode(exprCode);
+    releaseRegister(exprCode.place);
+    return exprCode.code;
+}
+
+string IncreDecreStatement::generateCode()
+{
+    return "";
+}
+
+string WhileStatement::generateCode()
+{
+    return "";
+}
+
+string BlockStatement::generateCode()
+{
+    stringstream code;
+    list<Statement *>::iterator declIt = this->statements->begin();
+    while (declIt != this->statements->end())
+    {
+        code << (*declIt)->generateCode();
+        declIt++;
+    }
+    return code.str();
+}
+
+string saveState()
+{
+    stringstream code;
+    code << "sw $ra, " << globalStackpointer << "($sp)" << endl;
+    globalStackpointer += 4;
+    return code.str();
+}
+
+string retrieveState(string state)
+{
+    string::size_type n = 0;
+    string originalStateStatement = "sw";
+    while ((n = state.find(originalStateStatement, n)) != string::npos)
+    {
+        state.replace(n, originalStateStatement.size(), "lw");
+        n += originalStateStatement.size();
+    }
+    return state;
+}
+
+string FunctionStatement::generateCode()
+{
+    int stackPointer = 4;
+    globalStackpointer = 0;
+    stringstream code;
+    code << this->id << ": " << endl;
+    string state = saveState();
+    code << state << endl;
+    if (this->params->size() > 0)
+    {
+        list<VarDeclarationStatement *>::iterator paramsIt = this->params->begin();
+        for (int i = 0; i < this->params->size(); i++)
+        {
+            code << "sw $a" << i << ", " << stackPointer << "($sp)" << endl;
+            codeGenerationVars[(*paramsIt)->id] = new CodeGenerationVarInfo(true, (*paramsIt)->type, stackPointer);
+            stackPointer += 4;
+            globalStackpointer += 4;
+            paramsIt++;
+        }
+    }
+    code << this->block->generateCode() << endl;
+    stringstream stackPointerCode;
+    stackPointerCode << endl
+                     << "addiu $sp, $sp, -" << globalStackpointer << endl;
+    code << retrieveState(state) << endl
+         << "addiu $sp, $sp, " << globalStackpointer << endl
+         << "jr $ra" << endl;
+    // codeGenerationVars.clear();
+    string finalCode = code.str();
+    finalCode.insert(this->id.size() + 2, stackPointerCode.str());
+    return finalCode;
+}
+
+string BlockFunctionStatement::generateCode()
+{
+    stringstream code;
+    CodeContext litCode;
+    stringstream literals;
+    code << literals.str() << endl;
+    list<Statement *>::iterator it = this->statements->begin();
+    while (it != this->statements->end())
+    {
+        code << (*it)->generateCode();
+        it++;
+    }
+
+    code << "li $v0, 10" << endl
+         << "syscall" << endl;
+    return code.str();
 }

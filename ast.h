@@ -188,7 +188,6 @@ public: \
     void generateCode(CodeContext &context);\
 };
 
-
 IMPLEMENT_BINARY_EXPR(Mult);
 IMPLEMENT_BINARY_EXPR(Div);
 IMPLEMENT_BINARY_EXPR(Mod);
@@ -238,6 +237,7 @@ class ArrayArgExpression: public Expression{
         void print();
         ComplexType* getType();
         void generateCode(CodeContext &context);
+
         
 };
 
@@ -251,6 +251,8 @@ class ReadExpression: public Expression{
         PrimitiveType primitiveType;
         void print();
         ComplexType* getType();
+        void generateCode(CodeContext &context);
+
 };
 
 /*STATEMENT ABSTRACT CLASS*/
@@ -508,4 +510,5 @@ class BlockFunctionStatement: public Statement{
         void print();
         void evaluateSemantic();
         string generateCode();
+      
 };
