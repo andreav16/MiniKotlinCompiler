@@ -1216,6 +1216,7 @@ void ReadExpression::generateCode(CodeContext &context)
 string VarDeclarationStatement::generateCode()
 {
     codeGenerationVars[this->id] = new CodeGenerationVarInfo(false, this->type, globalStackpointer);
+    cout << this->id << "\t" << globalStackpointer << endl;
     if (!this->type->isArray)
     {
         globalStackpointer += 4;
@@ -1242,8 +1243,9 @@ string PrintStatement::generateCode()
 {
     stringstream code;
     CodeContext exprContext;
-    cout << "linea:" << (string *)this->expression;
     this->expression->generateCode(exprContext);
+    releaseRegister(exprContext.place);
+    code << exprContext.code << endl;
     if (exprContext.type->primitiveType == INT)
     {
         code << "move $a0, " << exprContext.place << endl
@@ -1256,12 +1258,16 @@ string PrintStatement::generateCode()
     }
     else if (exprContext.type->primitiveType == STRING)
     {
-        if (exprContext.place == "")
+        if (exprContext.place == "") //si el print es de una variable string
         {
-            // if(vars.find())
+            IdExpression *idExpr = static_cast<IdExpression *>(this->expression);
+            code << "lw $a0, " << codeGenerationVars[idExpr->id]->offset << "($sp)" << endl;
+
         }
-        code << "la $a0, " << exprContext.place << endl
-             << "li $v0, 4" << endl;
+        else {
+            code << "la $a0, " << exprContext.place << endl
+                << "li $v0, 4" << endl;
+        }  
     }
     else if (exprContext.type->primitiveType == CHAR)
     {
@@ -1328,7 +1334,7 @@ string AssignationStatement::generateCode()
     stringstream code;
     this->expression->generateCode(rightSideCode);
     code << rightSideCode.code;
-    if (codeGenerationVars.find(this->id) == codeGenerationVars.end())
+    if (codeGenerationVars.find(this->id) == codeGenerationVars.end()) //variables globales
     {
         if (this->isArray)
         {
@@ -1359,11 +1365,11 @@ string AssignationStatement::generateCode()
         }
         else if (rightSideCode.type->primitiveType == STRING)
         {
-            cout << "string place " << rightSideCode.place << endl;
-            cout << "id: " << this->id << endl;
+            cout << "1 string place " << rightSideCode.place << endl;
+            cout << "1 id: " << this->id << endl;
         }
     }
-    else
+    else //variables locales
     {
         if (this->isArray)
         {
@@ -1401,8 +1407,10 @@ string AssignationStatement::generateCode()
         }
         else if (rightSideCode.type->primitiveType == STRING)
         {
-            cout << "string place " << rightSideCode.place << endl;
-            cout << "id: " << this->id << endl;
+            string temp = getIntTemp();
+            code << "la " << temp << ", " << rightSideCode.place << endl;
+            code << "sw " << temp << ", " << codeGenerationVars[this->id]->offset << "($sp)" << endl;
+            releaseRegister(temp);
         }
     }
     releaseRegister(rightSideCode.place);
