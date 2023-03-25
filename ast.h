@@ -31,6 +31,7 @@ public:
     }
     virtual void print() = 0;
     virtual ComplexType* getType() = 0;
+    virtual void generateCode(CodeContext &context) = 0;
 };
 
 //2.1 Literals
@@ -44,6 +45,7 @@ public:
     char value;
     void print();
     ComplexType* getType();
+    void generateCode(CodeContext &context);
 };
 
 class StringExpression: public Expression
@@ -55,6 +57,7 @@ public:
     string value;
     void print();
     ComplexType* getType();
+    void generateCode(CodeContext &context);
 };
 
 class IntExpression: public Expression
@@ -66,6 +69,7 @@ public:
     int value;
     void print();
     ComplexType* getType();
+    void generateCode(CodeContext &context);
 };
 
 class FloatExpression: public Expression{
@@ -76,6 +80,7 @@ public:
     float value;
     void print();
     ComplexType* getType();
+    void generateCode(CodeContext &context);
 };
 
 class BooleanExpression: public Expression{
@@ -86,6 +91,7 @@ public:
     bool value;
     void print();
     ComplexType* getType();
+    void generateCode(CodeContext &context);
 };
 
 //2.2 Factors
@@ -98,6 +104,7 @@ public:
     string id;
     void print();
     ComplexType* getType();
+    void generateCode(CodeContext &context);
 };
 
 class ArrayAccessExpression: public Expression{
@@ -110,6 +117,7 @@ public:
     Expression * index;
     void print();
     ComplexType* getType();
+    void generateCode(CodeContext &context);
 };
 
 class MethodCallExpression: public Expression{
@@ -122,6 +130,7 @@ public:
     list<Expression *> * args;
     void print();
     ComplexType* getType();
+    void generateCode(CodeContext &context);
 };
 
 //2.3 Incre Decre
@@ -136,6 +145,7 @@ public:
     Expression * expr;
     void print();
     ComplexType* getType();
+    void generateCode(CodeContext &context);
 };
 
 //2.4 Unary
@@ -150,6 +160,7 @@ public:
     Expression * expr;
     void print();
     ComplexType* getType();
+    void generateCode(CodeContext &context);
 };
 
 //2.5 Binary
@@ -165,6 +176,7 @@ public:
     Expression * right;
     virtual ComplexType* getType() = 0;
     virtual void print() = 0;
+    virtual void generateCode(CodeContext &context) = 0;
 };
 
 #define IMPLEMENT_BINARY_EXPR(name) \
@@ -173,6 +185,7 @@ public: \
     name##Expression(Expression * left, Expression * right, int line, int column): BinaryExpression(left, right, line, column){}\
     void print();\
     ComplexType* getType();\
+    void generateCode(CodeContext &context);\
 };
 
 
@@ -206,6 +219,7 @@ public:
     ComplexType* type;
     void print();
     ComplexType* getType();
+    void generateCode(CodeContext &context);
 };
 
 
@@ -223,6 +237,7 @@ class ArrayArgExpression: public Expression{
         list<Expression *> * literals;
         void print();
         ComplexType* getType();
+        void generateCode(CodeContext &context);
         
 };
 
@@ -233,6 +248,7 @@ public:
     Statement(int line, int column) : Node(line, column) {}
     virtual void print() = 0;
     virtual void evaluateSemantic() = 0;
+    virtual string generateCode() = 0;
 };
 
 /*3. DECLARATIONS*/
@@ -242,6 +258,7 @@ public:
     Declaration(int line, int column) : Statement(line, column) {}
     virtual void print() = 0;
     virtual void evaluateSemantic() =0;
+    virtual string generateCode() = 0;
 };
 
 class VarDeclarationStatement : public Declaration
@@ -256,6 +273,7 @@ public:
     ComplexType * type;
     void print();
     void evaluateSemantic();
+    string generateCode();
 };
 
 class VarDeclAssignStatement : public Declaration
@@ -271,6 +289,7 @@ public:
     Expression * expr;
     void print();
     void evaluateSemantic();
+    string generateCode();
 };
 
 class ArrayVarDeclAssignStatement : public Declaration
@@ -290,9 +309,9 @@ public:
     Expression * initializer;
     void print();
     void evaluateSemantic();
+    string generateCode();
 };
 
-/*Pend de revisar*/
 class MethodInformation{
     public:
         ComplexType* returnType;
@@ -315,6 +334,7 @@ public:
     Expression *expression;
     void print();
     void evaluateSemantic();
+    string generateCode();
 };
 
 class IfStatement : public Statement
@@ -331,6 +351,7 @@ public:
     Statement *falseStatement;
     void print();
     void evaluateSemantic();
+    string generateCode();
 };
 
 class AssignationStatement : public Statement
@@ -349,6 +370,7 @@ public:
     bool isArray;
     void print();
     void evaluateSemantic();
+    string generateCode();
 };
 
 class CommentStatement : public Statement
@@ -361,6 +383,7 @@ public:
     string comment;
     void print();
     void evaluateSemantic();
+    string generateCode();
 };
 
 class ForStatement : public Statement
@@ -379,6 +402,7 @@ public:
     Statement *stmt;
     void print();
     void evaluateSemantic();
+    string generateCode();
 };
 
 class ReturnStatement: public Statement{
@@ -389,6 +413,7 @@ class ReturnStatement: public Statement{
         Expression * expression;
         void print();
         void evaluateSemantic();
+        string generateCode();
 };
 
 class ExpressionStatement : public Statement{
@@ -400,6 +425,7 @@ class ExpressionStatement : public Statement{
         Expression * expr;
         void print();
         void evaluateSemantic();
+        string generateCode();
 };
 
 class IncreDecreStatement: public Statement{
@@ -411,6 +437,7 @@ class IncreDecreStatement: public Statement{
         IncreDecreExpression * expr;
         void print();
         void evaluateSemantic();
+        string generateCode();
 };
 
 class WhileStatement: public Statement{
@@ -424,6 +451,7 @@ class WhileStatement: public Statement{
         Statement * stmt;
         void print();
         void evaluateSemantic();
+        string generateCode();
 };
 
 
@@ -436,6 +464,7 @@ class BlockStatement: public Statement{
         list<Statement *> * statements;
         void print();
         void evaluateSemantic();
+        string generateCode();
 };
 
 class FunctionStatement: public Statement{
@@ -453,6 +482,7 @@ class FunctionStatement: public Statement{
         Statement * block;
         void print();
         void evaluateSemantic();
+        string generateCode();
 };
 
 class BlockFunctionStatement: public Statement{
@@ -464,4 +494,5 @@ class BlockFunctionStatement: public Statement{
         list<Statement *> * statements;
         void print();
         void evaluateSemantic();
+        string generateCode();
 };

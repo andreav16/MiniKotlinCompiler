@@ -707,3 +707,15 @@ string newLabel(string prefix)
     labelCounter++;
     return label.str();
 }
+
+void StringExpression::generateCode(CodeContext &context){
+    string label = newLabel("string");
+    stringstream code;
+    code << label<<": .asciiz "<< this->value<<endl;
+    context.code = "";
+    context.place = label;
+    context.type = new ComplexType((PrimitiveType)STRING, false);
+    string finalCode = code.str();
+    replace(finalCode.begin(), finalCode.end(), '\'', '\"');
+    assemblyResult.data += finalCode;
+}
