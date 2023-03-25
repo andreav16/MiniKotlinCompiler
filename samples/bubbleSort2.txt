@@ -2,6 +2,7 @@ fun bubbleSort(arr:Array<Int>, size:Int):Array<Int>{
     var swap: Boolean = true
     while(swap){
         swap = false
+        var i: Int;
         for(i in 0 until size-1){
             if(arr[i] > arr[i+1]){
                 val temp: Int = arr[i]
@@ -16,7 +17,12 @@ fun bubbleSort(arr:Array<Int>, size:Int):Array<Int>{
 }
 
 fun main() {
-    val list: Array<Int> = bubbleSort(arrayOf<Int>(2,15,1,8,4), 5)
+    val list = Array<Int>(5){0};
+    var i: Int;
+    for(i in 0 until 5){
+        list[i] = (i + 1) * 10;
+    }
+    var resultList: Array<Int> = bubbleSort(list, 5);
     var k:Int 
     k=0
     for(k in 0 until 4){

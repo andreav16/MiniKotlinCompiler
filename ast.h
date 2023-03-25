@@ -241,6 +241,18 @@ class ArrayArgExpression: public Expression{
         
 };
 
+class ReadExpression: public Expression{
+    public:
+        ReadExpression(PrimitiveType primitiveType)
+            : Expression(line, column)
+        {
+            this->primitiveType = primitiveType;
+        }
+        PrimitiveType primitiveType;
+        void print();
+        ComplexType* getType();
+};
+
 /*STATEMENT ABSTRACT CLASS*/
 class Statement : public Node
 {
@@ -407,7 +419,8 @@ public:
 
 class ReturnStatement: public Statement{
     public:
-        ReturnStatement(Expression * expression, int line, int column):Statement(line, column){
+        ReturnStatement(Expression * expression, int line, int column)
+        :Statement(line, column){
             this->expression = expression;
         }
         Expression * expression;

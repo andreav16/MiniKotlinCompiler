@@ -105,6 +105,11 @@ void ArrayArgExpression::print()
     cout << "Array arg expr of type " << this->type->primitiveType << " Line: " << this->line << " column : " << this->column << endl;
 }
 
+void ReadExpression::print()
+{
+    cout << "Read expr of type " << this->primitiveType << " Line: " << this->line << " column : " << this->column << endl;
+}
+
 void VarDeclarationStatement::print()
 {
     cout << "Var Declaration Statement line: " << this->line << " column: " << this->column << endl;
@@ -238,11 +243,11 @@ ComplexType *UnaryExpression::getType()
     ComplexType *type = this->expr->getType();
     if (this->op == NOT && type->primitiveType != BOOLEAN)
     {
-        cerr << "No se puede aplicar el operador NOT a una expresion no booleana" << endl;
+        cerr << "No se puede aplicar el operador NOT a una expresion no booleana linea: " << this->line << " columna: " << this->column << endl;
     }
-    else if (this->op == NEG && type->primitiveType != BOOLEAN)
+    else if (this->op == NEG && (type->primitiveType != INT || type->primitiveType != FLOAT)) //ESTO YA NO SE USA EN EL PARSER
     {
-        cerr << "No se puede aplicar el operador NEG a una expresion no booleana" << endl;
+        cerr << "No se puede aplicar el operador NEG a una expresion no booleana linea: " << this->line << " columna: " << this->column << endl;
     }
     return type;
 }
@@ -460,6 +465,11 @@ ComplexType *ArrayArgExpression::getType()
     return this->getType();
 }
 
+ComplexType *ReadExpression::getType()
+{
+    return new ComplexType(this->primitiveType, false);
+}
+
 GET_TYPE_BINARY_EXPR(Mult);
 GET_TYPE_BINARY_EXPR(Div);
 GET_TYPE_BINARY_EXPR(Mod);
@@ -495,12 +505,46 @@ void VarDeclarationStatement::evaluateSemantic()
 
 void VarDeclAssignStatement::evaluateSemantic()
 {
-    // pend
+    //Declaration
+    if (getVarType(this->decl->id)->primitiveType != NONE)
+    {
+        cerr << "Ya existe una variable con el nombre " << (this->decl->id) << " linea " << this->line << " columna: " << this->column << endl;
+        return;
+    }
+    currentContext->vars[this->decl->id] = this->decl->type;
+    //Assignation
+    ComplexType *varType = getVarType(this->decl->id);
+    ComplexType *exprType = this->expr->getType();
+    if (varType->primitiveType != exprType->primitiveType)
+    {
+        cerr << "No se puede asignar " << getTypeAsString(exprType) << " a la variable de tipo " << getTypeAsString(varType) << " linea " << this->line << " columna: " << this->column << endl;
+        return;
+    }
 }
 
 void ArrayVarDeclAssignStatement::evaluateSemantic()
 {
-    // pend
+    PrimitiveType declType = getVarType(this->id)->primitiveType;
+    if (declType != NONE)
+    {
+        cerr<<"Ya existe una variable con el nombre "<< this->id <<" linea " <<this->line<<" columna: "<<this->column<<endl;
+        return;
+    }
+    
+    if (this->type->isArray && this->size <= 0)
+    {
+        cerr<<"El tamanio de un arreglo debe ser mayor a 0. Linea " <<this->line<<" columna: "<<this->column<<endl;
+        return;
+    }
+    if (this->initializer->getType()->primitiveType != this->type->primitiveType)
+    {
+        cerr <<"No se puede inicializar un arreglo de tipo " <<  getTypeAsString(this->type) << " con el tipo " << getTypeAsString(this->initializer->getType())
+            << " linea " <<this->line<<" columna: "<<this->column<<endl;
+        return;
+    }
+    ArrayType * arrayType = static_cast<ArrayType *>(this->type);
+    arrayType->size = this->size;
+    currentContext->vars[this->id] = arrayType;  
 }
 
 /*Evaluate Semantic of Statements*/
@@ -508,9 +552,10 @@ void ArrayVarDeclAssignStatement::evaluateSemantic()
 void PrintStatement::evaluateSemantic()
 {
     PrimitiveType type = this->expression->getType()->primitiveType;
-    if (type != STRING)
+    if (type != STRING && type != INT && type != FLOAT)
     {
-        cerr << "Solo se permite imprimir tipo de dato STRING linea:" << this->line << " columna: " << this->column << endl;
+        cerr << "Solo se permite imprimir tipo de dato STRING, INT o FLOAT, tipo de dato encontrado: " << type
+            << ". Linea:" << this->line << " columna: " << this->column << endl;
         return;
     }
 }
@@ -575,6 +620,13 @@ void ForStatement::evaluateSemantic()
 void ReturnStatement::evaluateSemantic()
 {
     // validar que el expression->getType sea el mismo que el tipo de la función en la que está
+    map<string, MethodInformation*>::reverse_iterator methodIt = methods.rbegin();
+    if (methodIt != methods.rend()){
+        cout << (*methodIt).first << endl;
+    }
+    // if (this->expression->getType()->primitiveType != ){
+
+    // }
 }
 
 void ExpressionStatement::evaluateSemantic()
@@ -631,13 +683,13 @@ void FunctionStatement::evaluateSemantic()
     }
     methods[this->id] = new MethodInformation(this->returnType, this->params);
     pushContext();
-    this->block->evaluateSemantic();
     list<VarDeclarationStatement *>::iterator itStmt = this->params->begin();
     while (itStmt != this->params->end())
     {
         (*itStmt)->evaluateSemantic();
         itStmt++;
     }
+    this->block->evaluateSemantic();
     popContext();
 }
 
