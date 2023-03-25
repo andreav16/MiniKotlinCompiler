@@ -341,6 +341,7 @@ string getTypeAsString(ComplexType *type)
 class Context
 {
 public:
+    string id = "";
     struct Context *prev;
     map<string, ComplexType *> vars;
 };
@@ -349,12 +350,13 @@ map<string, ComplexType *> vars;
 map<string, ComplexType *> globalVars;
 Context *currentContext = NULL;
 
-void pushContext()
+void pushContext(string id)
 {
     vars.clear();
     Context *context = new Context();
     context->vars = vars;
     context->prev = currentContext;
+    context->id = id;
     currentContext = context;
 }
 
@@ -567,7 +569,7 @@ void IfStatement::evaluateSemantic()
         cerr << "El if requiere una expresion booleana linea: " << this->line << " columna " << this->column << endl;
         return;
     }
-    pushContext();
+    pushContext("if");
     this->trueStatement->evaluateSemantic();
     popContext();
     if (this->falseStatement != NULL)
@@ -612,7 +614,7 @@ void ForStatement::evaluateSemantic()
         cerr << "No se puede asignar " << getTypeAsString(toExprType) << " a la variable de tipo " << getTypeAsString(varType) << " linea " << this->line << " columna: " << this->column << endl;
         return;
     }
-    pushContext();
+    pushContext("for");
     this->stmt->evaluateSemantic();
     popContext();
 }
@@ -620,14 +622,27 @@ void ForStatement::evaluateSemantic()
 void ReturnStatement::evaluateSemantic()
 {
     // validar que el expression->getType sea el mismo que el tipo de la función en la que está
-    map<string, MethodInformation *>::reverse_iterator methodIt = methods.rbegin();
-    if (methodIt != methods.rend())
+    MethodInformation* method = methods[currentContext->prev->id];
+    if (method == NULL)
     {
-        cout << (*methodIt).first << endl;
+        cerr << "Funcion " << currentContext->prev->id << " no encontrado linea: " << this->line << " columna: " << this->column << endl;
+        return;
     }
-    if (this->expression->getType()->primitiveType != methodIt->second->returnType->primitiveType)
+    if(method->returnType->isArray ){
+        if(!this->expression->getType()->isArray){
+            cerr << "Funcion es de tipo array, no se puede retornar tipo primitivo. linea: " << this->line << " columna: " << this->column << endl;
+            return;
+        }
+    }
+    if(this->expression->getType()->isArray){
+        if(!method->returnType->isArray ){
+            cerr << "Funcion es de tipo primitivo, no se puede retornar tipo array. linea: " << this->line << " columna: " << this->column << endl;
+            return;
+        }
+    }
+    if (this->expression->getType()->primitiveType != method->returnType->primitiveType)
     {
-        cerr << "No se puede retornar tipo " << getTypeAsString(this->expression->getType()) << " en funcion de tipo" << getTypeAsString(methodIt->second->returnType) << " linea: " << this->line << " columna: " << this->column << endl;
+        cerr << "No se puede retornar tipo " << getTypeAsString(this->expression->getType()) << " en funcion de tipo " << getTypeAsString(method->returnType) << " linea: " << this->line << " columna: " << this->column << endl;
         return;
     }
 }
@@ -653,14 +668,14 @@ void WhileStatement::evaluateSemantic()
         cerr << "El while requiere una expresion booleana línea: " << this->line << " columna " << this->column << endl;
         return;
     }
-    pushContext();
+    pushContext("while");
     this->stmt->evaluateSemantic();
     popContext();
 }
 
 void BlockStatement::evaluateSemantic()
 {
-    pushContext();
+    pushContext("block");
     list<Statement *>::iterator itStmt = this->statements->begin();
     while (itStmt != this->statements->end())
     {
@@ -685,7 +700,7 @@ void FunctionStatement::evaluateSemantic()
         return;
     }
     methods[this->id] = new MethodInformation(this->returnType, this->params);
-    pushContext();
+    pushContext(this->id);
     list<VarDeclarationStatement *>::iterator itStmt = this->params->begin();
     while (itStmt != this->params->end())
     {
