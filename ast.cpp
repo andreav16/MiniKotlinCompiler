@@ -719,3 +719,32 @@ void StringExpression::generateCode(CodeContext &context){
     replace(finalCode.begin(), finalCode.end(), '\'', '\"');
     assemblyResult.data += finalCode;
 }
+
+void IntExpression::generateCode(CodeContext &context)
+{
+    stringstream code;
+    string temp = getIntTemp();
+    code<<"li "<<temp<<", "<< this->value<<endl;
+    context.code = code.str();
+    context.place = temp;
+    context.type = new ComplexType((PrimitiveType)INT, false);
+}
+
+void FloatExpression::generateCode(CodeContext &context)
+{
+    stringstream code;
+    string temp = getFloatTemp();
+    code<<"li.s "<<temp<<", "<< this->value<<endl;
+    context.code = code.str();
+    context.place = temp;
+    context.type = new ComplexType((PrimitiveType)FLOAT, false);
+}
+
+void CharExpression::generateCode(CodeContext &context){
+    stringstream code;
+    string temp = getIntTemp();
+    code<<"li "<<temp<<", '"<< this->value<<"'"<<endl;
+    context.code = code.str();
+    context.place = temp;
+    context.type = new ComplexType((PrimitiveType)CHAR, false);
+}
