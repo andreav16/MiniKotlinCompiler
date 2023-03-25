@@ -958,6 +958,10 @@ string intArithmetic(CodeContext &leftCode, CodeContext &rightCode, CodeContext 
         code << "div " << leftCode.place << ", " << rightCode.place << endl
              << "mflo " << resultCode.place;
         break;
+    case '%':
+        code << "div " << leftCode.place << ", " << rightCode.place << endl
+             << "mfhi " << resultCode.place;
+        break;
     default:
         break;
     }
@@ -1052,6 +1056,133 @@ string concatString(CodeContext &leftCode, CodeContext &resultCode, char op)
         context.code = code.str();                                                                  \
     }
 
+string comparingInts(CodeContext &leftCode, CodeContext &rightCode, CodeContext &resultCode, string op)
+{
+    resultCode.place = getIntTemp();
+    stringstream code;
+    if (op == ">")
+    {
+        code << "sgt " << resultCode.place << ", " << leftCode.place << ", " << rightCode.place << endl;
+    }
+    else if (op == ">=")
+    {
+        code << "sge " << resultCode.place << ", " << leftCode.place << ", " << rightCode.place << endl;
+    }
+    else if (op == "<")
+    {
+        code << "slt " << resultCode.place << ", " << leftCode.place << ", " << rightCode.place << endl;
+    }
+    else if (op == "<=")
+    {
+        code << "sle " << resultCode.place << ", " << leftCode.place << ", " << rightCode.place << endl;
+    }
+    else if (op == "==")
+    {
+        code << "seq " << resultCode.place << ", " << leftCode.place << ", " << rightCode.place << endl;
+    }
+    else if (op == "!=")
+    {
+        code << "sne " << resultCode.place << ", " << leftCode.place << ", " << rightCode.place << endl;
+    }
+    return code.str();
+}
+
+string comparingFloats(CodeContext &leftCode, CodeContext &rightCode, CodeContext &resultCode, string op)
+{
+    resultCode.place = getFloatTemp();
+    stringstream code;
+    string trueLabel = newLabel("true");
+    string falseLabel = newLabel("false");
+    code << "li.s " << resultCode.place << ",0.0" << endl;
+    if (op == "<")
+    {
+        code << "c.lt.s " << rightCode.place << ", " << leftCode.place << endl
+             << "bc1t " << trueLabel << endl
+             << "bc1f " << falseLabel << endl
+             << trueLabel << ": " << endl
+             << "li.s " << resultCode.place << ", 1.0" << endl
+             << falseLabel << ": " << endl;
+    }
+    else if (op == ">")
+    {
+        code << "c.lt.s " << rightCode.place << ", " << leftCode.place << endl
+             << "bc1t " << falseLabel << endl
+             << "bc1f " << trueLabel << endl
+             << trueLabel << ": " << endl
+             << "li.s " << resultCode.place << ", 1.0" << endl
+             << falseLabel << ": " << endl;
+    }
+    else if (op == ">=")
+    {
+        code << "c.le.s " << rightCode.place << ", " << leftCode.place << endl
+             << "bc1t " << falseLabel << endl
+             << "bc1f " << trueLabel << endl
+             << trueLabel << ": " << endl
+             << "li.s " << resultCode.place << ", 1.0" << endl
+             << falseLabel << ": " << endl;
+    }
+    else if (op == "<=")
+    {
+        code << "c.le.s " << rightCode.place << ", " << leftCode.place << endl
+             << "bc1t " << trueLabel << endl
+             << "bc1f " << falseLabel << endl
+             << trueLabel << ": " << endl
+             << "li.s " << resultCode.place << ", 1.0" << endl
+             << falseLabel << ": " << endl;
+    }
+    else if (op == "==")
+    {
+        code << "c.eq.s " << rightCode.place << ", " << leftCode.place << endl
+             << "bc1t " << trueLabel << endl
+             << "bc1f " << falseLabel << endl
+             << trueLabel << ": " << endl
+             << "li.s " << resultCode.place << ", 1.0" << endl
+             << falseLabel << ": " << endl;
+    }
+    else if (op == "!=")
+    {
+        code << "c.eq.s " << rightCode.place << ", " << leftCode.place << endl
+             << "bc1t " << falseLabel << endl
+             << "bc1f " << trueLabel << endl
+             << trueLabel << ": " << endl
+             << "li.s " << resultCode.place << ", 1.0" << endl
+             << falseLabel << ": " << endl;
+    }
+    return code.str();
+}
+
+#define GEN_COMPARE_CODE_BINARY_EXPR(name, op)                                           \
+    void name##Expression::generateCode(CodeContext &context)                            \
+    {                                                                                    \
+        CodeContext leftCode, rightCode;                                                 \
+        stringstream code;                                                               \
+        this->left->generateCode(leftCode);                                              \
+        this->right->generateCode(rightCode);                                            \
+        if (leftCode.type->primitiveType == INT && rightCode.type->primitiveType == INT) \
+        {                                                                                \
+            context.type = leftCode.type;                                                \
+            releaseRegister(leftCode.place);                                             \
+            releaseRegister(rightCode.place);                                            \
+            code << leftCode.code << endl                                                \
+                 << rightCode.code << endl                                               \
+                 << comparingInts(leftCode, rightCode, context, op) << endl;             \
+        }                                                                                \
+        else                                                                             \
+        {                                                                                \
+            context.type = new ComplexType(FLOAT, false);                                \
+            if (leftCode.type->primitiveType != FLOAT)                                   \
+                toFloat(leftCode);                                                       \
+            if (rightCode.type->primitiveType != FLOAT)                                  \
+                toFloat(rightCode);                                                      \
+            releaseRegister(leftCode.place);                                             \
+            releaseRegister(rightCode.place);                                            \
+            code << leftCode.code << endl                                                \
+                 << rightCode.code << endl                                               \
+                 << comparingFloats(leftCode, rightCode, context, op) << endl;           \
+        }                                                                                \
+        context.code = code.str();                                                       \
+    }
+
 GEN_ARIT_CODE_BINARY_EXPR(Mult, '*');
 GEN_ARIT_CODE_BINARY_EXPR(Div, '/');
 GEN_ARIT_CODE_BINARY_EXPR(Mod, '%');
@@ -1060,14 +1191,15 @@ GEN_ARIT_CODE_BINARY_EXPR(Sub, '-');
 
 // Preguntar range
 GEN_CODE_BINARY_EXPR(Range);
-GEN_CODE_BINARY_EXPR(Gt);
-GEN_CODE_BINARY_EXPR(Lt);
-GEN_CODE_BINARY_EXPR(Gte);
-GEN_CODE_BINARY_EXPR(Lte);
 GEN_CODE_BINARY_EXPR(Or);
 GEN_CODE_BINARY_EXPR(And);
-GEN_CODE_BINARY_EXPR(Eq);
-GEN_CODE_BINARY_EXPR(Neq);
+
+GEN_COMPARE_CODE_BINARY_EXPR(Gt, ">");
+GEN_COMPARE_CODE_BINARY_EXPR(Lt, "<");
+GEN_COMPARE_CODE_BINARY_EXPR(Gte, ">=");
+GEN_COMPARE_CODE_BINARY_EXPR(Lte, "<=");
+GEN_COMPARE_CODE_BINARY_EXPR(Eq, "=");
+GEN_COMPARE_CODE_BINARY_EXPR(Neq, "!=");
 
 void ParamExpression::generateCode(CodeContext &context)
 {
@@ -1110,9 +1242,8 @@ string PrintStatement::generateCode()
 {
     stringstream code;
     CodeContext exprContext;
-    cout<<"linea:"<<this->expression->line;
+    cout << "linea:" << (string *)this->expression;
     this->expression->generateCode(exprContext);
-    cout << "expresion llega" << exprContext.place;
     if (exprContext.type->primitiveType == INT)
     {
         code << "move $a0, " << exprContext.place << endl
@@ -1125,7 +1256,10 @@ string PrintStatement::generateCode()
     }
     else if (exprContext.type->primitiveType == STRING)
     {
-        cout<<"ahora "<<exprContext.place;
+        if (exprContext.place == "")
+        {
+            // if(vars.find())
+        }
         code << "la $a0, " << exprContext.place << endl
              << "li $v0, 4" << endl;
     }
@@ -1144,7 +1278,48 @@ string PrintStatement::generateCode()
 
 string IfStatement::generateCode()
 {
-    return "";
+    string ifLabel = newLabel("if");
+    string elseLabel = "";
+    if (this->falseStatement != NULL)
+    {
+        elseLabel = newLabel("else");
+    }
+
+    string endifLabel = newLabel("endif");
+    stringstream code;
+    CodeContext exprContext;
+    this->expression->generateCode(exprContext);
+    releaseRegister(exprContext.place);
+    code << ifLabel << ": " << endl
+         << exprContext.code << endl;
+    if (elseLabel != "")
+    {
+        if (exprContext.type->primitiveType == INT)
+        {
+            code << "beqz " << exprContext.place << ", " << elseLabel << endl;
+        }
+        else
+        {
+            code << "bc1f " << elseLabel << endl;
+        }
+    }
+    else
+    {
+        if (exprContext.type->primitiveType == INT)
+        {
+            code << "beqz " << exprContext.place << ", " << endifLabel << endl;
+        }
+        else
+        {
+            code << "bc1f " << endifLabel << endl;
+        }
+    }
+
+    code << this->trueStatement->generateCode() << endl
+         << "j " << endifLabel << endl
+         << elseLabel << ": " << this->falseStatement->generateCode() << endl
+         << endifLabel << ": " << endl;
+    return code.str();
 }
 
 string AssignationStatement::generateCode()
@@ -1264,7 +1439,27 @@ string IncreDecreStatement::generateCode()
 
 string WhileStatement::generateCode()
 {
-    return "";
+    stringstream code;
+    string whileLabel = newLabel("while");
+    string endWhile = newLabel("endWhile");
+    CodeContext exprCode;
+    this->expr->generateCode(exprCode);
+    releaseRegister(exprCode.place);
+    code << whileLabel << ": " << endl
+         << exprCode.code << endl;
+    if (exprCode.type->primitiveType == INT)
+    {
+        code << "beqz " << exprCode.place << ", " << endWhile << endl;
+    }
+    else
+    {
+        code << "bc1f " << endWhile << endl;
+    }
+    code << this->stmt->generateCode() << endl
+         << "j " << whileLabel << endl
+         << endWhile << ": " << endl;
+
+    return code.str();
 }
 
 string BlockStatement::generateCode()
