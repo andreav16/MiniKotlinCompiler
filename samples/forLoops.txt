@@ -1,18 +1,10 @@
 fun main() {
 
-    for (item in ints) {
-        // ...
-    }
-
-    for (k in list) print("$k ")
-
-    for (i in 1..3) {
-        println(i)
-    }
-
+    var i: Int;
+    var size: Int = 10;
     for(i in 0 until size-1){
          if(true){
-
+            print("aqui estoy")
          }  
          else {
             

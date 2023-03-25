@@ -9,11 +9,12 @@ fun main() {
   myFunction("George")
 
     val number1: Float = 12.5
-    val number2: String = "hola";
+    val number2: Int = 5;
     var result: Float
 
     result = number1 + number2
-    println("number1 + number2 = $result")
+    println("number1 + number2 = ")
+    println(result)
 
 
   // John Doe

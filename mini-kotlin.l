@@ -69,7 +69,8 @@ DIGIT [0-9]
 "Char" {return KW_CHAR;}
 "Boolean" {return KW_BOOLEAN;}
 "String" {return KW_STRING;}
-"readLine" {return KW_READLINE;}
+"read.nextFloat" {return KW_READFLOAT;}
+"read.nextInt" {return KW_READINT;}
 "println" {return KW_PRINTLN;}
 "print" {return KW_PRINT;}
 {LETTER}({LETTER}|{DIGIT})* { yylval.string_t = strdup(yytext); return TK_ID; }

@@ -2,7 +2,7 @@ fun main() {
     
     val a: Int = 10
     val b: Int = 9
-    val c: Int = -1
+    val c: Int = 1
     val result: Boolean
 
     // result is true is a is largest

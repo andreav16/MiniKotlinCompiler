@@ -50,7 +50,7 @@
 %token KW_BREAK KW_DO KW_ELSE KW_FOR KW_FUN KW_IF KW_IN
 %token KW_RETURN KW_VAR KW_CONTINUE KW_ARRAYOF KW_ARRAY KW_WHEN KW_IS KW_NULL KW_VAL
 %token KW_WHILE KW_CONST KW_INT KW_FLOAT KW_CHAR KW_BOOLEAN KW_STRING KW_UNTIL
-%token KW_PRINTLN KW_READLINE KW_PRINT KW_MAIN KW_ARGS
+%token KW_PRINTLN KW_READFLOAT KW_READINT KW_PRINT KW_MAIN KW_ARGS
 
 %token<string_t> TK_ID TK_LIT_STRING TK_LINE_COMMENT TK_BLOCK_COMMENT
 %token<float_t> TK_LIT_FLOAT
@@ -66,7 +66,7 @@
 %type<var_declaration_t> variable_decl array_param
 %type<int_t> type_identifier
 %type<expr_list_t> args func_CallLiterals
-%type<type_t> func_type type
+%type<type_t> func_type type type_array
 %type<var_declaration_list_t> params
 
 %precedence TK_EQUAL TK_NOT_EQUAL
@@ -114,8 +114,8 @@ decl_inline: variable_decl { $$ = $1; }
         |   variable_decl ';' { $$ = $1; }
         |   variable_decl '=' expression { $$ = new VarDeclAssignStatement($1, $3, line, column); }
         |   variable_decl '=' expression ';' { $$ = new VarDeclAssignStatement($1, $3, line, column); }
-        |   TK_ID '=' KW_ARRAY '<' type '>' '(' TK_LIT_INT ')' '{' literal '}' { $$ = new ArrayVarDeclAssignStatement($1, $5, $8, $11, line, column); }
-        |   TK_ID '=' KW_ARRAY '<' type '>' '(' TK_LIT_INT ')' '{' literal '}' ';' { $$ = new ArrayVarDeclAssignStatement($1, $5, $8, $11, line, column); }
+        |   TK_ID '=' KW_ARRAY '<' type_array '>' '(' TK_LIT_INT ')' '{' literal '}' { $$ = new ArrayVarDeclAssignStatement($1, $5, $8, $11, line, column); }
+        |   TK_ID '=' KW_ARRAY '<' type_array '>' '(' TK_LIT_INT ')' '{' literal '}' ';' { $$ = new ArrayVarDeclAssignStatement($1, $5, $8, $11, line, column); }
         ;
 
 variable_decl: TK_ID ':' func_type { $$ = new VarDeclarationStatement($1,$3,line, column);}
@@ -204,6 +204,7 @@ returnORbreak_stmt: KW_RETURN expression ';' { $$ = new ReturnStatement($2, line
             ; 
 
 methodcall_stmt: TK_ID '(' args ')' { $$ = new ExpressionStatement(new MethodCallExpression(new IdExpression($1,line,column),$3, line,column),line,column);}
+                | TK_ID '(' args ')' ';' { $$ = new ExpressionStatement(new MethodCallExpression(new IdExpression($1,line,column),$3, line,column),line,column);}
                 ;
                 
 //EXPRESSIONS
@@ -235,7 +236,6 @@ term: term '*' unary_expression { $$ = new MultExpression($1, $3, line, column);
     ;
 
 unary_expression: '!' factor  { $$ = new UnaryExpression(NOT, $2, line, column); }
-                | '-' factor { $$ = new UnaryExpression(NEG, $2, line, column); }
                 | incre_decre_expression { $$ = $1; }
                 | factor { $$ = $1; }
                 ;
@@ -250,6 +250,8 @@ factor: '(' expression ')' { $$ = $2; }
     | TK_ID { $$ = new IdExpression($1, line, column); }
     | TK_ID '[' expression ']' { $$ = new ArrayAccessExpression(new IdExpression($1, line, column), $3, line, column); } //array access
     | TK_ID '(' args ')' { $$ = new MethodCallExpression(new IdExpression($1,line,column),$3, line,column); }
+    | KW_READFLOAT '(' ')' { $$ = new ReadExpression(FLOAT); }
+    | KW_READINT '(' ')' { $$ = new ReadExpression(INT); }
     ;
 
 literal: TK_LIT_CHAR { $$ = new CharExpression($1, line, column); }
@@ -265,6 +267,9 @@ func_CallLiterals: literal ',' func_CallLiterals { $$ = $3; $$->push_back($1); }
                 ;
 
 type: type_identifier { $$ = new ComplexType((PrimitiveType)$1, false); /*solo Primitive Type (non Array)*/ }
+     ;
+
+type_array: type_identifier { $$ = new ArrayType(0, (PrimitiveType)$1); /*solo Array*/ }
      ;
 
 func_type: type_identifier { $$ = new ComplexType((PrimitiveType)$1, false); }

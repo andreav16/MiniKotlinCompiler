@@ -1,19 +1,18 @@
 fun main() {
-    val list = Array<String>(3){""};
-    list[0]="andrea";
-    list[1]="angella";
-    list[2]="nicole"
+    var element: Int;
     for(element in 0 until 10){
         println(element)
     }
-     var x: Int = 2;
-    while (x > 0) {var x:Int= 1}
-do{
-    var x: Int= 1
-    x++;
-}while (x > 0); // y is visible here!
+    var x: Int = 2;
+    while (x > 0) { x = 1}
+    do{
+        x++;
+    }while (x > 0); // y is visible here!
 
- var swap: Boolean = true
+    var swap: Boolean = true
+    var size: Int = 3;
+    val arr = Array<Int>(3){0};
+    var i: Int;
     while(swap){
         swap = false
         for(i in 0 until size-1){

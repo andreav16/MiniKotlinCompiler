@@ -1,4 +1,8 @@
 fun main(){
     val a: Boolean
     a++;
+    val list = Array<String>(3){""};
+    list[0]="andrea";
+    list[1]="angella";
+    list[2]="nicole"
 }
