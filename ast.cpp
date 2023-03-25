@@ -748,3 +748,101 @@ void CharExpression::generateCode(CodeContext &context){
     context.place = temp;
     context.type = new ComplexType((PrimitiveType)CHAR, false);
 }
+
+void BooleanExpression::generateCode(CodeContext &context){
+    //No se probará
+}
+
+void IdExpression::generateCode(CodeContext &context){
+    if (codeGenerationVars.find(this->id) == codeGenerationVars.end())
+    {
+        context.globalVarName = this->id;
+        context.type = globalVars[this->id];
+        if (globalVars[this->id]->isArray)
+        {
+            string temp = getIntTemp();
+            context.code = "la " + temp +", "+ this->id + "\n";
+            context.place = temp;
+        }
+        if (globalVars[this->id]->primitiveType ==  FLOAT)
+        {
+            string floatTemp = getFloatTemp();
+            context.place = floatTemp;
+            context.code = "l.s "+floatTemp + ", " + this->id +"\n";
+        }else if (globalVars[this->id]->primitiveType == INT){
+            string intTemp = getIntTemp();
+            context.place = intTemp;
+            context.code = "lw "+intTemp + ", " + this->id +"\n";
+        }
+    }else{
+        context.type = codeGenerationVars[this->id]->type;
+        if (codeGenerationVars[this->id]->type->primitiveType == FLOAT && !codeGenerationVars[this->id]->type->isArray)
+        {
+            string floatTemp = getFloatTemp();
+            context.place = floatTemp;
+            context.code = "l.s "+floatTemp + ", " + to_string(codeGenerationVars[this->id]->offset) +"($sp)\n";
+        }
+        else if (codeGenerationVars[this->id]->type->primitiveType == INT && !codeGenerationVars[this->id]->type->isArray){
+            string intTemp = getIntTemp();
+            context.place = intTemp;
+            context.code = "lw "+intTemp + ", " + to_string(codeGenerationVars[this->id]->offset) +"($sp)\n";
+        }else if(codeGenerationVars[this->id]->type->isArray){
+          string intTemp = getIntTemp();
+          context.code = "la "+ intTemp + to_string(codeGenerationVars[this->id]->offset) +"($sp)\n";
+          context.place = intTemp;
+        }
+    }
+}
+
+void ArrayAccessExpression::generateCode(CodeContext &context){
+    CodeContext indexCode;
+    stringstream code;
+    this->index->generateCode(indexCode);
+    releaseRegister(indexCode.place);
+
+    string temp = getIntTemp();
+    string address = getIntTemp();
+    code<< indexCode.code <<endl
+    <<"li $a0, 4"<<endl
+    <<"mult $a0, "<<indexCode.place<<endl
+    <<"mflo "<< temp<< endl;
+
+    if (codeGenerationVars.find(this->id->id) == codeGenerationVars.end())
+    {
+        code <<"la "<<address<<", "<<this->id->id<<endl
+        <<"add "<<temp<<", "<<address<<", "<<temp<<endl;
+        releaseRegister(address);
+        if (globalVars[this->id->id]->primitiveType == INT)
+        {
+            code<< "lw "<< temp<<", 0("<<temp<<")"<<endl;
+            context.place = temp;
+            context.type = new ComplexType(INT, false);
+        }else{
+            string value = getFloatTemp();
+            code<< "l.s "<< value<<", 0("<<temp<<")"<<endl;
+            context.place = value;
+            context.type = new ComplexType(FLOAT, false);
+            releaseRegister(temp);
+        }
+    }else{
+        if(!codeGenerationVars[this->id->id]->isParameter){
+            code<<"la "<<address<<", "<<codeGenerationVars[this->id->id]->offset<<"($sp)"<<endl;
+        }else{
+            code<<"lw "<<address<<", "<<codeGenerationVars[this->id->id]->offset<<"($sp)"<<endl;
+        }
+        code<<"add "<<temp<<", "<<address<<", "<<temp<<endl;
+        if (codeGenerationVars[this->id->id]->type->primitiveType == INT)
+        {
+            code<<"lw "<<temp<<", 0("<<temp<<")"<<endl;
+            context.place = temp;
+            context.type = codeGenerationVars[this->id->id]->type;
+        }else{
+            string value = getFloatTemp();
+            code<<"l.s "<<value<<", 0("<<temp<<")"<<endl;
+            context.place = value;
+            context.type = codeGenerationVars[this->id->id]->type;
+            releaseRegister(temp);
+        }
+    }
+    context.code = code.str();
+}
