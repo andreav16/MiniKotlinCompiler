@@ -944,14 +944,57 @@ void ArrayAccessExpression::generateCode(CodeContext &context)
 
 void MethodCallExpression::generateCode(CodeContext &context)
 {
+    //PENDIENTE PROBAR
+    list<Expression*>::iterator it = this->args->begin();
+    list<CodeContext> codes;
+    stringstream code;
+    CodeContext argCode;
+    while (it != this->args->end())
+    {
+        (*it)->generateCode(argCode);
+        code<<argCode.code <<endl;
+        codes.push_back(argCode);
+        it++;
+    }
+
+    int i = 0;
+    list<CodeContext>::iterator codeIt = codes.begin();
+    while (codeIt != codes.end())
+    {
+        releaseRegister((*codeIt).place);
+        if ((*codeIt).type->primitiveType == INT)
+        {
+            code << "move $a"<<i<<", "<<(*codeIt).place<<endl;
+        }else{
+            code << "mfc1 $a"<<i<<", "<<(*codeIt).place<<endl;
+        }
+        i++;
+        codeIt++;
+    }
+    
+    code <<"jal "<<this->id->id<<endl;
+    string result;
+    if (methods[this->id->id]->returnType->primitiveType == FLOAT)
+    {
+        result = getFloatTemp();
+        code<<"mtc1 $v0, "<<result<<endl;
+    }else if(methods[this->id->id]->returnType->primitiveType == INT){
+        result = getIntTemp();
+        code<<"move "<<result<<", $v0"<<endl;
+    }
+    context.code = code.str();
+    context.place = result;
+    context.type = methods[this->id->id]->returnType;
 }
 
 void IncreDecreExpression::generateCode(CodeContext &context)
 {
+    //Nicole
 }
 
 void UnaryExpression::generateCode(CodeContext &context)
 {
+    //Nicole
 }
 
 #define GEN_CODE_BINARY_EXPR(name) \
@@ -1002,12 +1045,14 @@ void toFloat(CodeContext &context)
 
 string floatArithmetic(CodeContext &leftCode, CodeContext &rightCode, CodeContext &resultCode, char op)
 {
-    resultCode.place = getFloatTemp(); // f6
-    string result1 = getFloatTemp(); // f4
-    string result2 = getFloatTemp(); // t0
-    string result3 = getFloatTemp(); // f5
+    resultCode.place = getFloatTemp();
+    string temp1 = getIntTemp();
+    string tempf1 = getFloatTemp();
+    string tempf2 = getFloatTemp();
+    string tempf3 = getFloatTemp();
+    string tempf4 = getFloatTemp();
+
     stringstream code;
-    CodeContext tempContext;
     switch (op)
     {
     case '+':
@@ -1023,10 +1068,19 @@ string floatArithmetic(CodeContext &leftCode, CodeContext &rightCode, CodeContex
         code << "div.s " << resultCode.place << ", " << leftCode.place << ", " << rightCode.place << endl;
         break;
     case '%':
-        cout << result1;
-        code << "div.s " << result1 << ", " << leftCode.place << ", " << rightCode.place << endl
-        <<"mul.s "<<result2<<", "<<result1<<", "<<rightCode.place<<endl
-        <<"sub.s "<<resultCode.place<<", "<<leftCode.place<<", "<<result2<<endl;
+        code << "div.s " << tempf1 << ", " << leftCode.place << ", " << rightCode.place << endl
+        << "cvt.w.s " << tempf2 << ", "<< tempf1<<endl
+        << "mfc1 "<< temp1 << ", " << tempf2<< endl
+        << "mtc1 "<< temp1 << ", " << tempf3<<endl
+        << "cvt.s.w "<< tempf3 << ", " << tempf3<< endl
+        << "mul.s " << tempf4 << ", " << rightCode.place << ", " << tempf3 << endl
+        << "sub.s " << resultCode.place<< ", " << leftCode.place << ", " <<  tempf4 << endl;
+
+        releaseRegister(temp1);
+        releaseRegister(tempf1);
+        releaseRegister(tempf2);
+        releaseRegister(tempf3);
+        releaseRegister(tempf4);
         break;
     default:
         break;
@@ -1040,7 +1094,6 @@ string concatString(CodeContext &leftCode, CodeContext &rightCode, CodeContext &
     stringstream code;
     if (op == '+')
     {
-        cout << "entro al concatstring" << endl;
         cout << leftCode.place << endl;
         cout << rightCode.place << endl;
         code << "la " << resultCode.place << ", " << leftCode.place << endl;
@@ -1236,14 +1289,17 @@ GEN_COMPARE_CODE_BINARY_EXPR(Neq, "!=");
 
 void ParamExpression::generateCode(CodeContext &context)
 {
+    //Falta
 }
 
 void ArrayArgExpression::generateCode(CodeContext &context)
 {
+    //Falta
 }
 
 void ReadExpression::generateCode(CodeContext &context)
 {
+    //Falta
 }
 
 string VarDeclarationStatement::generateCode()
@@ -1323,6 +1379,7 @@ string VarDeclAssignStatement::generateCode()
 
 string ArrayVarDeclAssignStatement::generateCode()
 {
+    // Falta
     return "";
 }
 
@@ -1373,6 +1430,7 @@ string IfStatement::generateCode()
 {
     string ifLabel = newLabel("if");
     string elseLabel = "";
+
     if (this->falseStatement != NULL)
     {
         elseLabel = newLabel("else");
@@ -1409,9 +1467,11 @@ string IfStatement::generateCode()
     }
 
     code << this->trueStatement->generateCode() << endl
-         << "j " << endifLabel << endl
-         << elseLabel << ": " << this->falseStatement->generateCode() << endl
-         << endifLabel << ": " << endl;
+         << "j " << endifLabel << endl;
+    if (elseLabel != ""){
+        code<<elseLabel << ": " <<this->falseStatement->generateCode() << endl;
+    }
+        code << endifLabel << ": " << endl;
     return code.str();
 }
 
@@ -1513,12 +1573,21 @@ string CommentStatement::generateCode()
 
 string ForStatement::generateCode()
 {
+    //Falta
     return "";
 }
 
 string ReturnStatement::generateCode()
 {
-    return "";
+    //pendiente de probar
+    CodeContext exprCode;
+    this->expression->generateCode(exprCode);
+    releaseRegister(exprCode.place);
+    
+    stringstream ss;
+    ss << exprCode.code << endl
+    << "move $v0, "<< exprCode.place <<endl;
+    return ss.str();
 }
 
 string ExpressionStatement::generateCode()
@@ -1531,6 +1600,7 @@ string ExpressionStatement::generateCode()
 
 string IncreDecreStatement::generateCode()
 {
+    // Falta
     return "";
 }
 

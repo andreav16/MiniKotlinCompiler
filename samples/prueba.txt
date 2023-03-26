@@ -1,25 +1,14 @@
-fun myFunction(fname: String) {
-  println(fname)
-}
-
 
 fun main() {
-  myFunction("John")
-  myFunction("Jane")
-  myFunction("George")
 
-    val number1: Float = 12.5
+    val number1: Int = 10;
     val number2: Int = 5;
-    var result: Float
-
-    result = number1 + number2
-    println("number1 + number2 = ")
+    var result: Int
+    if (number1 > number2) {
+      return number2
+    }
     println(result)
 
-
-  // John Doe
-  // Jane Doe
-  // George Doe
 
 }
   

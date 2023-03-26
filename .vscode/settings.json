@@ -4,6 +4,8 @@
         "list": "cpp",
         "string_view": "cpp",
         "ostream": "cpp",
-        "system_error": "cpp"
+        "system_error": "cpp",
+        "iosfwd": "cpp",
+        "sstream": "cpp"
     }
 }

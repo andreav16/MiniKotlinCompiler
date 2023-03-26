@@ -1,6 +1,6 @@
 fun main() {
 
-    val number1: Float = 12.5
+    val number1: Float = 16.5
     val number2: Float = 3.5
     var result: Float
 
@@ -19,6 +19,7 @@ fun main() {
     result = number1 / number2
      println("resultado de division")
     println(result)
+
 
     result = number1 % number2
     println("resultado de residuo")
