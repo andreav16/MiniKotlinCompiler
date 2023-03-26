@@ -3,6 +3,7 @@
         "iostream": "cpp",
         "list": "cpp",
         "string_view": "cpp",
-        "ostream": "cpp"
+        "ostream": "cpp",
+        "system_error": "cpp"
     }
 }

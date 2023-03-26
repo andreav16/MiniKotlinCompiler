@@ -1,24 +1,8 @@
 fun main() {
 
-    var start: String
-    start = "hola"
-
-    println(start);
-    println("adios");
-    println(55);
-
-    var num: Float
-    num = 223.322
-    println(num)
-}
-
-fun main2() {
-    /*
     val start: String = "Talk is cheap. "
     val middle: String = "Show me the code. "
     val end: String = "- Linus Torvalds"
 
-    val result: String = start + middle + end
     println(start);
-    */
 }

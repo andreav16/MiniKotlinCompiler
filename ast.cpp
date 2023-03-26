@@ -622,20 +622,24 @@ void ForStatement::evaluateSemantic()
 void ReturnStatement::evaluateSemantic()
 {
     // validar que el expression->getType sea el mismo que el tipo de la función en la que está
-    MethodInformation* method = methods[currentContext->prev->id];
+    MethodInformation *method = methods[currentContext->prev->id];
     if (method == NULL)
     {
         cerr << "Funcion " << currentContext->prev->id << " no encontrado linea: " << this->line << " columna: " << this->column << endl;
         return;
     }
-    if(method->returnType->isArray ){
-        if(!this->expression->getType()->isArray){
+    if (method->returnType->isArray)
+    {
+        if (!this->expression->getType()->isArray)
+        {
             cerr << "Funcion es de tipo array, no se puede retornar tipo primitivo. linea: " << this->line << " columna: " << this->column << endl;
             return;
         }
     }
-    if(this->expression->getType()->isArray){
-        if(!method->returnType->isArray ){
+    if (this->expression->getType()->isArray)
+    {
+        if (!method->returnType->isArray)
+        {
             cerr << "Funcion es de tipo primitivo, no se puede retornar tipo array. linea: " << this->line << " columna: " << this->column << endl;
             return;
         }
@@ -983,10 +987,27 @@ string intArithmetic(CodeContext &leftCode, CodeContext &rightCode, CodeContext 
     return code.str();
 }
 
+void toFloat(CodeContext &context)
+{
+    string floatTemp = getFloatTemp();
+    stringstream code;
+    code << context.code
+         << "mtc1 " << context.place << ", " << floatTemp << endl
+         << "cvt.s.w " << floatTemp << ", " << floatTemp << endl;
+    releaseRegister(context.place);
+    context.place = floatTemp;
+    context.type = new ComplexType(FLOAT, false);
+    context.code = code.str();
+}
+
 string floatArithmetic(CodeContext &leftCode, CodeContext &rightCode, CodeContext &resultCode, char op)
 {
-    resultCode.place = getFloatTemp();
+    resultCode.place = getFloatTemp(); // f6
+    string result1 = getFloatTemp(); // f4
+    string result2 = getFloatTemp(); // t0
+    string result3 = getFloatTemp(); // f5
     stringstream code;
+    CodeContext tempContext;
     switch (op)
     {
     case '+':
@@ -1001,31 +1022,27 @@ string floatArithmetic(CodeContext &leftCode, CodeContext &rightCode, CodeContex
     case '/':
         code << "div.s " << resultCode.place << ", " << leftCode.place << ", " << rightCode.place << endl;
         break;
+    case '%':
+        cout << result1;
+        code << "div.s " << result1 << ", " << leftCode.place << ", " << rightCode.place << endl
+        <<"mul.s "<<result2<<", "<<result1<<", "<<rightCode.place<<endl
+        <<"sub.s "<<resultCode.place<<", "<<leftCode.place<<", "<<result2<<endl;
+        break;
     default:
         break;
     }
     return code.str();
 }
 
-void toFloat(CodeContext &context)
-{
-    string floatTemp = getFloatTemp();
-    stringstream code;
-    code << context.code
-         << "mtc1 " << context.place << ", " << floatTemp << endl
-         << "cvt.s.w " << floatTemp << ", " << floatTemp << endl;
-    releaseRegister(context.place);
-    context.place = floatTemp;
-    context.type = new ComplexType(FLOAT, false);
-    context.code = code.str();
-}
-
-string concatString(CodeContext &leftCode, CodeContext &resultCode, char op)
+string concatString(CodeContext &leftCode, CodeContext &rightCode, CodeContext &resultCode, char op)
 {
     resultCode.place = getIntTemp();
     stringstream code;
     if (op == '+')
     {
+        cout << "entro al concatstring" << endl;
+        cout << leftCode.place << endl;
+        cout << rightCode.place << endl;
         code << "la " << resultCode.place << ", " << leftCode.place << endl;
     }
     return code.str();
@@ -1053,7 +1070,8 @@ string concatString(CodeContext &leftCode, CodeContext &resultCode, char op)
             releaseRegister(leftCode.place);                                                        \
             releaseRegister(rightCode.place);                                                       \
             code << leftCode.code << endl                                                           \
-                 << concatString(leftCode, context, op) << endl;                                    \
+                 << rightCode.code << endl                                                          \
+                 << concatString(leftCode, rightCode, context, op) << endl;                         \
         }                                                                                           \
         else                                                                                        \
         {                                                                                           \
@@ -1062,11 +1080,11 @@ string concatString(CodeContext &leftCode, CodeContext &resultCode, char op)
                 toFloat(leftCode);                                                                  \
             if (rightCode.type->primitiveType != FLOAT)                                             \
                 toFloat(rightCode);                                                                 \
-            releaseRegister(leftCode.place);                                                        \
-            releaseRegister(rightCode.place);                                                       \
             code << leftCode.code << endl                                                           \
                  << rightCode.code << endl                                                          \
                  << floatArithmetic(leftCode, rightCode, context, op) << endl;                      \
+            releaseRegister(leftCode.place);                                                        \
+            releaseRegister(rightCode.place);                                                       \
         }                                                                                           \
         context.code = code.str();                                                                  \
     }
@@ -1246,6 +1264,60 @@ string VarDeclarationStatement::generateCode()
 
 string VarDeclAssignStatement::generateCode()
 {
+    // declaracion
+    codeGenerationVars[this->decl->id] = new CodeGenerationVarInfo(false, this->decl->type, globalStackpointer);
+    cout << this->decl->id << "\t" << globalStackpointer << endl;
+    if (!this->decl->type->isArray)
+    {
+        globalStackpointer += 4;
+    }
+    else
+    {
+    }
+    // asignación
+    CodeContext rightSideCode;
+    stringstream code;
+    this->expr->generateCode(rightSideCode);
+    code << rightSideCode.code;
+    if (codeGenerationVars.find(this->decl->id) == codeGenerationVars.end()) // variables globales
+    {
+        if (rightSideCode.type->primitiveType == INT)
+        {
+            code << "sw " << rightSideCode.place << ", " << this->decl->id << endl;
+        }
+        else if (rightSideCode.type->primitiveType == FLOAT)
+        {
+            code << "s.s " << rightSideCode.place << ", " << this->decl->id << endl;
+        }
+        else if (rightSideCode.type->primitiveType == STRING)
+        {
+            string temp = getIntTemp();
+            code << "la " << temp << ", " << rightSideCode.place << endl;
+            code << "sw " << temp << ", " << codeGenerationVars[this->decl->id]->offset << "($sp)" << endl;
+            releaseRegister(temp);
+        }
+    }
+    else // variables locales
+    {
+        if (rightSideCode.type->primitiveType == INT)
+        {
+            code << "sw " << rightSideCode.place << ", " << codeGenerationVars[this->decl->id]->offset << "($sp)" << endl;
+        }
+        else if (rightSideCode.type->primitiveType == FLOAT)
+        {
+            code << "s.s " << rightSideCode.place << ", " << codeGenerationVars[this->decl->id]->offset << "($sp)" << endl;
+        }
+        else if (rightSideCode.type->primitiveType == STRING)
+        {
+            string temp = getIntTemp();
+            code << "la " << temp << ", " << rightSideCode.place << endl;
+            code << "sw " << temp << ", " << codeGenerationVars[this->decl->id]->offset << "($sp)" << endl;
+            releaseRegister(temp);
+        }
+    }
+    releaseRegister(rightSideCode.place);
+    return code.str();
+
     return "";
 }
 
@@ -1273,16 +1345,16 @@ string PrintStatement::generateCode()
     }
     else if (exprContext.type->primitiveType == STRING)
     {
-        if (exprContext.place == "") //si el print es de una variable string
+        if (exprContext.place == "") // si el print es de una variable string
         {
             IdExpression *idExpr = static_cast<IdExpression *>(this->expression);
             code << "lw $a0, " << codeGenerationVars[idExpr->id]->offset << "($sp)" << endl;
-
         }
-        else {
+        else
+        {
             code << "la $a0, " << exprContext.place << endl
-                << "li $v0, 4" << endl;
-        }  
+                 << "li $v0, 4" << endl;
+        }
     }
     else if (exprContext.type->primitiveType == CHAR)
     {
@@ -1349,7 +1421,7 @@ string AssignationStatement::generateCode()
     stringstream code;
     this->expression->generateCode(rightSideCode);
     code << rightSideCode.code;
-    if (codeGenerationVars.find(this->id) == codeGenerationVars.end()) //variables globales
+    if (codeGenerationVars.find(this->id) == codeGenerationVars.end()) // variables globales
     {
         if (this->isArray)
         {
@@ -1380,11 +1452,13 @@ string AssignationStatement::generateCode()
         }
         else if (rightSideCode.type->primitiveType == STRING)
         {
-            cout << "1 string place " << rightSideCode.place << endl;
-            cout << "1 id: " << this->id << endl;
+            string temp = getIntTemp();
+            code << "la " << temp << ", " << rightSideCode.place << endl;
+            code << "sw " << temp << ", " << codeGenerationVars[this->id]->offset << "($sp)" << endl;
+            releaseRegister(temp);
         }
     }
-    else //variables locales
+    else // variables locales
     {
         if (this->isArray)
         {

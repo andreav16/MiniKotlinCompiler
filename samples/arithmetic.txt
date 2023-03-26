@@ -9,7 +9,7 @@ fun main() {
     println(result)
 
     result = number1 - number2
-     println("resultado de resta")
+    println("resultado de resta")
     println(result)
 
     result = number1 * number2
