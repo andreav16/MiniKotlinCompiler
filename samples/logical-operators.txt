@@ -4,6 +4,7 @@ fun f(x: Int): Int {
     {
       cur = cur / 10
     }
+    println(cur)
     return cur
 }
 
@@ -31,9 +32,10 @@ fun main() {
     }else{
         println("Not found.")
     }
-    /*
-    if(not found){
+
+    if(!found){
         println("Not found x2.")
     }
-    */
+    
+    f(19);
 }

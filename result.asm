@@ -3,6 +3,7 @@
 string_5: .asciiz "Enter element to find:"
 string_13: .asciiz "Found."
 string_14: .asciiz "Not found."
+string_17: .asciiz "Not found x2."
 
 	nextline: .asciiz "\n"
 .text	
@@ -45,6 +46,14 @@ sw $t0, 8($sp)
 
 j while_0
 endWhile_1: 
+lw $t0, 8($sp)
+
+move $a0, $t0
+li $v0, 1
+syscall
+la $a0, nextline
+li $v0, 4
+syscall
 lw $t0, 8($sp)
 
 move $v0, $t0
@@ -179,6 +188,26 @@ li $v0, 4
 syscall
 
 endif_12: 
+if_15: 
+lw $t0, 28($sp)
+slti $t0, $t0, 1
+
+beqz $t0, endif_16
+
+la $a0, string_17
+li $v0, 4
+syscall
+la $a0, nextline
+li $v0, 4
+syscall
+
+j endif_16
+endif_16: 
+li $t0, 19
+
+move $a0, $t0
+jal f
+move $t0, $v0
 
 lw $ra, 0($sp)
 

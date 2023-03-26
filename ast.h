@@ -205,22 +205,6 @@ IMPLEMENT_BINARY_EXPR(And);
 IMPLEMENT_BINARY_EXPR(Eq);
 IMPLEMENT_BINARY_EXPR(Neq);
 
-//2.6 Params Expr
-
-class ParamExpression: public Expression{
-public:
-    ParamExpression(string id, ComplexType* type, int line, int column)
-        : Expression(line, column){
-        this->id = id;
-        this->type = type;
-    }
-    string id;
-    ComplexType* type;
-    void print();
-    ComplexType* getType();
-    void generateCode(CodeContext &context);
-};
-
 
 // 2.7 Args Expr
 

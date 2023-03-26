@@ -415,7 +415,7 @@ ComplexType *ArrayAccessExpression::getType()
         cerr << "indice debe ser de tipo entero linea:" << this->line << " column: " << this->column << endl;
         return new ComplexType(NONE, false);
     }
-    return this->id->getType(); // probar
+    return new ComplexType(this->id->getType()->primitiveType, false);
 }
 
 ComplexType *MethodCallExpression::getType()
@@ -1333,11 +1333,6 @@ GEN_COMPARE_CODE_BINARY_EXPR(Gte, ">=");
 GEN_COMPARE_CODE_BINARY_EXPR(Lte, "<=");
 GEN_COMPARE_CODE_BINARY_EXPR(Eq, "==");
 GEN_COMPARE_CODE_BINARY_EXPR(Neq, "!=");
-
-void ParamExpression::generateCode(CodeContext &context)
-{
-    //Falta
-}
 
 void ArrayArgExpression::generateCode(CodeContext &context)
 {
