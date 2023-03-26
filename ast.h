@@ -306,10 +306,10 @@ public:
     string generateCode();
 };
 
-class ArrayVarDeclAssignStatement : public Declaration
+class ArrayVarDeclStatement : public Declaration
 {
 public:
-    ArrayVarDeclAssignStatement(string id, ComplexType *type, int size, Expression * initializer, int line, int column) 
+    ArrayVarDeclStatement(string id, ComplexType *type, int size, Expression * initializer, int line, int column) 
         : Declaration(line, column)
     {
         this->id = id;

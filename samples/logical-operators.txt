@@ -11,25 +11,29 @@ fun main() {
 
     val num = Array<Int>(5){0};
     var i : Int;
+    println("Array elements")
     for(i in 0 until 4){
         num[i] = i + 1;
-        println(num[i])
+        println(num[i]);
     }
-    /*
-    val toFind : Int = 3
+  
     var found : Boolean = false
     var n : Int
-    for (i in 0 until 4) {
-        if (n == toFind) {
+    println("Enter element to find:")
+    val toFind : Int = read.nextInt();
+    for (n in 0 until 4) {
+        if (num[n] == toFind) {
             found = true
         }
     }
-
     if (found){
-        println("3 is found.")
+        println("Found.")
     }else{
-        println("3 is not found.")
+        println("Not found.")
+    }
+    /*
+    if(not found){
+        println("Not found x2.")
     }
     */
-        
 }

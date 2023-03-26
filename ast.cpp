@@ -120,7 +120,7 @@ void VarDeclAssignStatement::print()
     cout << "Var decl and assign Statement line: " << this->line << " column: " << this->column << endl;
 }
 
-void ArrayVarDeclAssignStatement::print()
+void ArrayVarDeclStatement::print()
 {
     cout << "Array var decl Statement line: " << this->line << " column: " << this->column << endl;
 }
@@ -524,7 +524,7 @@ void VarDeclAssignStatement::evaluateSemantic()
     }
 }
 
-void ArrayVarDeclAssignStatement::evaluateSemantic()
+void ArrayVarDeclStatement::evaluateSemantic()
 {
     PrimitiveType declType = getVarType(this->id)->primitiveType;
     if (declType != NONE)
@@ -827,7 +827,33 @@ void CharExpression::generateCode(CodeContext &context)
 
 void BooleanExpression::generateCode(CodeContext &context)
 {
-    // No se probará
+    // li $t0, 1|0
+    stringstream code;
+    string regTemp = getIntTemp(); 
+    code << "li " << regTemp << ", " <<this->value<<endl;
+    context.code = code.str();
+    context.place = regTemp; 
+    context.type = new ComplexType((PrimitiveType)BOOLEAN, false);
+}
+
+void ReadExpression::generateCode(CodeContext &context)
+{
+    stringstream codeS;
+    if (this->primitiveType == FLOAT){
+        context.place = getFloatTemp();
+        codeS <<"li $v0, 6"<<endl
+            <<"syscall"<<endl
+            << "mov.s "<< context.place <<", $f0" << endl;
+        context.type = new ComplexType((PrimitiveType)FLOAT, false);
+    }
+    else if (this->primitiveType == INT){
+        context.place = getIntTemp();
+        codeS <<"li $v0, 5"<<endl
+            <<"syscall"<<endl
+            << "move "<< context.place <<", $v0" << endl;
+        context.type = new ComplexType((PrimitiveType)INT, false);
+    }
+    context.code = codeS.str();
 }
 
 void IdExpression::generateCode(CodeContext &context)
@@ -848,7 +874,7 @@ void IdExpression::generateCode(CodeContext &context)
             context.place = floatTemp;
             context.code = "l.s " + floatTemp + ", " + this->id + "\n";
         }
-        else if (globalVars[this->id]->primitiveType == INT || globalVars[this->id]->primitiveType == STRING)
+        else if (globalVars[this->id]->primitiveType == INT || globalVars[this->id]->primitiveType == STRING || globalVars[this->id]->primitiveType == BOOLEAN)
         {
             string intTemp = getIntTemp();
             context.place = intTemp;
@@ -864,7 +890,7 @@ void IdExpression::generateCode(CodeContext &context)
             context.place = floatTemp;
             context.code = "l.s " + floatTemp + ", " + to_string(codeGenerationVars[this->id]->offset) + "($sp)\n";
         }
-        else if ( (codeGenerationVars[this->id]->type->primitiveType == INT || codeGenerationVars[this->id]->type->primitiveType == STRING )
+        else if ( (codeGenerationVars[this->id]->type->primitiveType == INT || codeGenerationVars[this->id]->type->primitiveType == STRING || codeGenerationVars[this->id]->type->primitiveType == BOOLEAN)
                 && !codeGenerationVars[this->id]->type->isArray )
         {
             string intTemp = getIntTemp();
@@ -1295,7 +1321,7 @@ GEN_COMPARE_CODE_BINARY_EXPR(Gt, ">");
 GEN_COMPARE_CODE_BINARY_EXPR(Lt, "<");
 GEN_COMPARE_CODE_BINARY_EXPR(Gte, ">=");
 GEN_COMPARE_CODE_BINARY_EXPR(Lte, "<=");
-GEN_COMPARE_CODE_BINARY_EXPR(Eq, "=");
+GEN_COMPARE_CODE_BINARY_EXPR(Eq, "==");
 GEN_COMPARE_CODE_BINARY_EXPR(Neq, "!=");
 
 void ParamExpression::generateCode(CodeContext &context)
@@ -1304,11 +1330,6 @@ void ParamExpression::generateCode(CodeContext &context)
 }
 
 void ArrayArgExpression::generateCode(CodeContext &context)
-{
-    //Falta
-}
-
-void ReadExpression::generateCode(CodeContext &context)
 {
     //Falta
 }
@@ -1322,7 +1343,7 @@ string VarDeclarationStatement::generateCode()
     return "";
 }
 
-string ArrayVarDeclAssignStatement::generateCode()
+string ArrayVarDeclStatement::generateCode()
 {
     codeGenerationVars[this->id] = new CodeGenerationVarInfo(false, this->type, globalStackpointer);
     cout << this->id << "\tfrom: " << globalStackpointer << "\t\tto:";
@@ -1345,7 +1366,7 @@ string VarDeclAssignStatement::generateCode()
     code << rightSideCode.code;
     if (codeGenerationVars.find(this->decl->id) == codeGenerationVars.end()) // variables globales
     {
-        if (rightSideCode.type->primitiveType == INT)
+        if (rightSideCode.type->primitiveType == INT || rightSideCode.type->primitiveType == BOOLEAN)
         {
             code << "sw " << rightSideCode.place << ", " << this->decl->id << endl;
         }
@@ -1363,7 +1384,7 @@ string VarDeclAssignStatement::generateCode()
     }
     else // variables locales
     {
-        if (rightSideCode.type->primitiveType == INT)
+        if (rightSideCode.type->primitiveType == INT || rightSideCode.type->primitiveType == BOOLEAN)
         {
             code << "sw " << rightSideCode.place << ", " << codeGenerationVars[this->decl->id]->offset << "($sp)" << endl;
         }
@@ -1397,7 +1418,7 @@ string PrintStatement::generateCode()
     CodeContext exprContext;
     this->expression->generateCode(exprContext);
     code << exprContext.code << endl;
-    if (exprContext.type->primitiveType == INT)
+    if (exprContext.type->primitiveType == INT || exprContext.type->primitiveType == BOOLEAN)
     {
         code << "move $a0, " << exprContext.place << endl
              << "li $v0, 1" << endl;
@@ -1452,7 +1473,7 @@ string IfStatement::generateCode()
          << exprContext.code << endl;
     if (elseLabel != "")
     {
-        if (exprContext.type->primitiveType == INT)
+        if (exprContext.type->primitiveType == INT || exprContext.type->primitiveType == BOOLEAN)
         {
             code << "beqz " << exprContext.place << ", " << elseLabel << endl;
         }
@@ -1463,7 +1484,7 @@ string IfStatement::generateCode()
     }
     else
     {
-        if (exprContext.type->primitiveType == INT)
+        if (exprContext.type->primitiveType == INT || exprContext.type->primitiveType == BOOLEAN)
         {
             code << "beqz " << exprContext.place << ", " << endifLabel << endl;
         }
@@ -1510,7 +1531,7 @@ string AssignationStatement::generateCode()
             releaseRegister(address);
             releaseRegister(indexCode.place);
         }
-        else if (rightSideCode.type->primitiveType == INT)
+        else if (rightSideCode.type->primitiveType == INT || rightSideCode.type->primitiveType == BOOLEAN)
         {
             code << "sw " << rightSideCode.place << ", " << this->id << endl;
         }
@@ -1554,7 +1575,7 @@ string AssignationStatement::generateCode()
             releaseRegister(address);
             releaseRegister(indexCode.place);
         }
-        else if (rightSideCode.type->primitiveType == INT)
+        else if (rightSideCode.type->primitiveType == INT || rightSideCode.type->primitiveType == BOOLEAN)
         {
             code << "sw " << rightSideCode.place << ", " << codeGenerationVars[this->id]->offset << "($sp)" << endl;
         }

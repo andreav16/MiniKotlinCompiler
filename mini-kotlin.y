@@ -114,8 +114,8 @@ decl_inline: variable_decl { $$ = $1; }
         |   variable_decl ';' { $$ = $1; }
         |   variable_decl '=' expression { $$ = new VarDeclAssignStatement($1, $3, line, column); }
         |   variable_decl '=' expression ';' { $$ = new VarDeclAssignStatement($1, $3, line, column); }
-        |   TK_ID '=' KW_ARRAY '<' type_array '>' '(' TK_LIT_INT ')' '{' literal '}' { $$ = new ArrayVarDeclAssignStatement($1, $5, $8, $11, line, column); }
-        |   TK_ID '=' KW_ARRAY '<' type_array '>' '(' TK_LIT_INT ')' '{' literal '}' ';' { $$ = new ArrayVarDeclAssignStatement($1, $5, $8, $11, line, column); }
+        |   TK_ID '=' KW_ARRAY '<' type_array '>' '(' TK_LIT_INT ')' '{' literal '}' { $$ = new ArrayVarDeclStatement($1, $5, $8, $11, line, column); }
+        |   TK_ID '=' KW_ARRAY '<' type_array '>' '(' TK_LIT_INT ')' '{' literal '}' ';' { $$ = new ArrayVarDeclStatement($1, $5, $8, $11, line, column); }
         ;
 
 variable_decl: TK_ID ':' func_type { $$ = new VarDeclarationStatement($1,$3,line, column);}
