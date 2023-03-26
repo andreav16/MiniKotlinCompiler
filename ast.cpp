@@ -1021,7 +1021,17 @@ void IncreDecreExpression::generateCode(CodeContext &context)
 
 void UnaryExpression::generateCode(CodeContext &context)
 {
-    //Nicole
+    CodeContext exprContext;
+    this->expr->generateCode(exprContext);
+    stringstream code;
+    code << exprContext.code;
+    if(this->op == NOT){
+        //  Set on less than immediate $1, $2, 1. if $2 < 1 then $1 = 1, else $1 = 0
+        code<<"slti "<<exprContext.place<<", "<<exprContext.place<<", 1"<<endl;    
+    }
+    context.place = exprContext.place;
+    context.code = code.str();
+    context.type = exprContext.type;
 }
 
 #define GEN_CODE_BINARY_EXPR(name) \
