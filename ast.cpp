@@ -832,7 +832,7 @@ void BooleanExpression::generateCode(CodeContext &context)
 
 void IdExpression::generateCode(CodeContext &context)
 {
-    if (codeGenerationVars.find(this->id) == codeGenerationVars.end())
+    if (codeGenerationVars.find(this->id) == codeGenerationVars.end()) //globales
     {
         context.globalVarName = this->id;
         context.type = globalVars[this->id];
@@ -848,14 +848,14 @@ void IdExpression::generateCode(CodeContext &context)
             context.place = floatTemp;
             context.code = "l.s " + floatTemp + ", " + this->id + "\n";
         }
-        else if (globalVars[this->id]->primitiveType == INT)
+        else if (globalVars[this->id]->primitiveType == INT || globalVars[this->id]->primitiveType == STRING)
         {
             string intTemp = getIntTemp();
             context.place = intTemp;
             context.code = "lw " + intTemp + ", " + this->id + "\n";
         }
     }
-    else
+    else //locales
     {
         context.type = codeGenerationVars[this->id]->type;
         if (codeGenerationVars[this->id]->type->primitiveType == FLOAT && !codeGenerationVars[this->id]->type->isArray)
@@ -864,7 +864,8 @@ void IdExpression::generateCode(CodeContext &context)
             context.place = floatTemp;
             context.code = "l.s " + floatTemp + ", " + to_string(codeGenerationVars[this->id]->offset) + "($sp)\n";
         }
-        else if (codeGenerationVars[this->id]->type->primitiveType == INT && !codeGenerationVars[this->id]->type->isArray)
+        else if ( (codeGenerationVars[this->id]->type->primitiveType == INT || codeGenerationVars[this->id]->type->primitiveType == STRING )
+                && !codeGenerationVars[this->id]->type->isArray )
         {
             string intTemp = getIntTemp();
             context.place = intTemp;
@@ -1088,15 +1089,26 @@ string floatArithmetic(CodeContext &leftCode, CodeContext &rightCode, CodeContex
     return code.str();
 }
 
+int concatCounter = 15;
 string concatString(CodeContext &leftCode, CodeContext &rightCode, CodeContext &resultCode, char op)
 {
-    resultCode.place = getIntTemp();
     stringstream code;
     if (op == '+')
     {
-        cout << leftCode.place << endl;
-        cout << rightCode.place << endl;
-        code << "la " << resultCode.place << ", " << leftCode.place << endl;
+        string tempReg = getIntTemp();
+        string concatLoopLabel = newLabel("concat_loop");
+        code << "move $a0, " << leftCode.place << endl
+            << "addi $a0, $a0, " << concatCounter << endl
+            << "move $a1, " << rightCode.place << endl
+            << concatLoopLabel << ": "<< endl
+            << "lb " << tempReg << ", ($a1) " << endl
+            << "sb " << tempReg << ", ($a0) " << endl
+            << "addi $a0, $a0, 1 " << endl
+            << "addi $a1, $a1, 1 " << endl
+            << "bnez "<< tempReg <<", " << concatLoopLabel << endl;
+        releaseRegister(tempReg);
+        resultCode.place = leftCode.place;
+        concatCounter += 18;
     }
     return code.str();
 }
@@ -1120,11 +1132,10 @@ string concatString(CodeContext &leftCode, CodeContext &rightCode, CodeContext &
         else if (leftCode.type->primitiveType == STRING && rightCode.type->primitiveType == STRING) \
         {                                                                                           \
             context.type = leftCode.type;                                                           \
-            releaseRegister(leftCode.place);                                                        \
-            releaseRegister(rightCode.place);                                                       \
             code << leftCode.code << endl                                                           \
                  << rightCode.code << endl                                                          \
                  << concatString(leftCode, rightCode, context, op) << endl;                         \
+            releaseRegister(rightCode.place);                                                       \
         }                                                                                           \
         else                                                                                        \
         {                                                                                           \
@@ -1366,7 +1377,13 @@ string VarDeclAssignStatement::generateCode()
         else if (rightSideCode.type->primitiveType == STRING)
         {
             string temp = getIntTemp();
-            code << "la " << temp << ", " << rightSideCode.place << endl;
+            if(rightSideCode.place[0] == '$'){ //reg
+                code << "move " << temp << ", " << rightSideCode.place << endl;
+            }
+            else {
+                code << "la " << temp << ", " << rightSideCode.place << endl;
+            }
+
             code << "sw " << temp << ", " << codeGenerationVars[this->decl->id]->offset << "($sp)" << endl;
             releaseRegister(temp);
         }
@@ -1388,7 +1405,6 @@ string PrintStatement::generateCode()
     stringstream code;
     CodeContext exprContext;
     this->expression->generateCode(exprContext);
-    releaseRegister(exprContext.place);
     code << exprContext.code << endl;
     if (exprContext.type->primitiveType == INT)
     {
@@ -1402,16 +1418,15 @@ string PrintStatement::generateCode()
     }
     else if (exprContext.type->primitiveType == STRING)
     {
-        if (exprContext.place == "") // si el print es de una variable string
-        {
-            IdExpression *idExpr = static_cast<IdExpression *>(this->expression);
-            code << "lw $a0, " << codeGenerationVars[idExpr->id]->offset << "($sp)" << endl;
-        }
-        else
-        {
-            code << "la $a0, " << exprContext.place << endl
+        if(exprContext.place[0] == '$'){
+            code << "move $a0, " << exprContext.place << endl
                  << "li $v0, 4" << endl;
         }
+        else {
+            code << "la $a0, " << exprContext.place << endl
+                << "li $v0, 4" << endl;
+        }
+            
     }
     else if (exprContext.type->primitiveType == CHAR)
     {
@@ -1423,6 +1438,7 @@ string PrintStatement::generateCode()
     code << "la $a0, nextline" << endl
          << "li $v0, 4" << endl
          << "syscall" << endl;
+    releaseRegister(exprContext.place);
     return code.str();
 }
 
@@ -1481,6 +1497,8 @@ string AssignationStatement::generateCode()
     stringstream code;
     this->expression->generateCode(rightSideCode);
     code << rightSideCode.code;
+    cout << "en assign"<<endl;
+
     if (codeGenerationVars.find(this->id) == codeGenerationVars.end()) // variables globales
     {
         if (this->isArray)

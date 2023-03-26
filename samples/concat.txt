@@ -4,5 +4,6 @@ fun main() {
     val middle: String = "Show me the code. "
     val end: String = "- Linus Torvalds"
 
-    println(start);
+    var result: String = start + middle + end;
+    println(result);
 }
