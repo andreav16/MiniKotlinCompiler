@@ -1316,16 +1316,19 @@ void ReadExpression::generateCode(CodeContext &context)
 string VarDeclarationStatement::generateCode()
 {
     codeGenerationVars[this->id] = new CodeGenerationVarInfo(false, this->type, globalStackpointer);
-    cout << this->id << "\t" << globalStackpointer << endl;
-    if (!this->type->isArray)
-    {
-        globalStackpointer += 4;
-    }
-    else
-    {
-        // falta lógica arreglos
-    }
+    cout << this->id << "\tfrom: " << globalStackpointer << "\t\tto:";
+    globalStackpointer += 4;
+    cout << globalStackpointer << endl;
+    return "";
+}
 
+string ArrayVarDeclAssignStatement::generateCode()
+{
+    codeGenerationVars[this->id] = new CodeGenerationVarInfo(false, this->type, globalStackpointer);
+    cout << this->id << "\tfrom: " << globalStackpointer << "\t\tto:";
+    ArrayType * arrayType = ((ArrayType *)this->type);
+    globalStackpointer += arrayType->size * 4;
+    cout << globalStackpointer << endl;
     return "";
 }
 
@@ -1334,13 +1337,7 @@ string VarDeclAssignStatement::generateCode()
     // declaracion
     codeGenerationVars[this->decl->id] = new CodeGenerationVarInfo(false, this->decl->type, globalStackpointer);
     cout << this->decl->id << "\t" << globalStackpointer << endl;
-    if (!this->decl->type->isArray)
-    {
-        globalStackpointer += 4;
-    }
-    else
-    {
-    }
+    globalStackpointer += 4;
     // asignación
     CodeContext rightSideCode;
     stringstream code;
@@ -1391,12 +1388,6 @@ string VarDeclAssignStatement::generateCode()
     releaseRegister(rightSideCode.place);
     return code.str();
 
-    return "";
-}
-
-string ArrayVarDeclAssignStatement::generateCode()
-{
-    // Falta
     return "";
 }
 
@@ -1497,7 +1488,6 @@ string AssignationStatement::generateCode()
     stringstream code;
     this->expression->generateCode(rightSideCode);
     code << rightSideCode.code;
-    cout << "en assign"<<endl;
 
     if (codeGenerationVars.find(this->id) == codeGenerationVars.end()) // variables globales
     {
@@ -1591,8 +1581,32 @@ string CommentStatement::generateCode()
 
 string ForStatement::generateCode()
 {
-    //Falta
-    return "";
+    stringstream code;
+    string forLabel = newLabel("startFor");
+    string endFor = newLabel("endFor");
+
+    CodeContext fromExprCode;
+    this->fromExpr->generateCode(fromExprCode);
+    CodeContext toExprCode;
+    this->toExpr->generateCode(toExprCode);
+    
+    code << fromExprCode.code << endl
+        << toExprCode.code << endl 
+        << "sw " << fromExprCode.place << ", " << codeGenerationVars[this->iteratorId]->offset << "($sp)" << endl
+        << forLabel<<": "<<endl;
+
+    //condicion
+    code << "bgt " << fromExprCode.place << ", " << toExprCode.place << ", " << endFor << endl;
+    //stmts
+    code << this->stmt->generateCode();
+    // i++
+    code << "addi " << fromExprCode.place << ", " << fromExprCode.place << ", 1" << endl
+        << "sw " << fromExprCode.place << ", " << codeGenerationVars[this->iteratorId]->offset << "($sp)" << endl
+        <<"j "<<forLabel<<endl
+        <<endFor<<": "<<endl;
+    releaseRegister(fromExprCode.place);
+    releaseRegister(toExprCode.place);
+    return code.str();
 }
 
 string ReturnStatement::generateCode()

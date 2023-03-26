@@ -1,64 +1,109 @@
 .data
-	string_0: .asciiz "Talk is cheap. "
-string_1: .asciiz "Show me the code. "
-string_2: .asciiz "- Linus Torvalds"
-
+	
 	nextline: .asciiz "\n"
 .text	
 .globl main
 	
-main: 
-addiu $sp, $sp, -20
+f: 
+addiu $sp, $sp, -12
 
 sw $ra, 0($sp)
 
-la $t0, string_0
-sw $t0, 4($sp)
-la $t0, string_1
-sw $t0, 8($sp)
-la $t0, string_2
-sw $t0, 12($sp)
+sw $a0, 4($sp)
 lw $t0, 4($sp)
 
-lw $t1, 8($sp)
+li $t1, 1
 
-move $a0, $t0
-addi $a0, $a0, 15
-move $a1, $t1
-concat_loop_3: 
-lb $t2, ($a1) 
-sb $t2, ($a0) 
-addi $a0, $a0, 1 
-addi $a1, $a1, 1 
-bnez $t2, concat_loop_3
+add $t0, $t0, $t1
+
+sw $t0, 8($sp)
+while_0: 
+lw $t0, 8($sp)
+
+li $t1, 10
+
+div $t0, $t1
+mfhi $t0
+
+li $t1, 0
 
 
-lw $t1, 12($sp)
 
-move $a0, $t0
-addi $a0, $a0, 33
-move $a1, $t1
-concat_loop_4: 
-lb $t2, ($a1) 
-sb $t2, ($a0) 
-addi $a0, $a0, 1 
-addi $a1, $a1, 1 
-bnez $t2, concat_loop_4
+beqz $t0, endWhile_1
+lw $t0, 8($sp)
 
-move $t1, $t0
-sw $t1, 16($sp)
-lw $t0, 16($sp)
+li $t1, 10
 
-move $a0, $t0
-li $v0, 4
+div $t0, $t1
+mflo $t0
+sw $t0, 8($sp)
+
+j while_0
+endWhile_1: 
+lw $t0, 8($sp)
+
+move $v0, $t0
+
+lw $ra, 0($sp)
+
+addiu $sp, $sp, 12
+jr $ra
+main: 
+addiu $sp, $sp, -28
+
+sw $ra, 0($sp)
+
+li $t0, 0
+
+li $t1, 4
+
+sw $t0, 24($sp)
+startFor_2: 
+bgt $t0, $t1, endFor_3
+lw $t2, 24($sp)
+
+li $t3, 1
+
+add $t2, $t2, $t3
+
+lw $t3, 24($sp)
+
+li $a0, 4
+mult $a0, $t3
+mflo $t4
+la $t5, 4($sp)
+add $t4, $t4, $t5
+lw $t2, 24($sp)
+
+li $t3, 1
+
+add $t2, $t2, $t3
+
+
+sw $t2, 0($t4)
+lw $t2, 24($sp)
+
+li $a0, 4
+mult $a0, $t2
+mflo $t2
+la $t3, 4($sp)
+add $t2, $t3, $t2
+lw $t2, 0($t2)
+
+move $a0, $t2
+li $v0, 1
 syscall
 la $a0, nextline
 li $v0, 4
 syscall
+addi $t0, $t0, 1
+sw $t0, 24($sp)
+j startFor_2
+endFor_3: 
 
 lw $ra, 0($sp)
 
-addiu $sp, $sp, 20
+addiu $sp, $sp, 28
 jr $ra
 li $v0, 10
 syscall

@@ -13,7 +13,9 @@ fun main() {
     var i : Int;
     for(i in 0 until 4){
         num[i] = i + 1;
+        println(num[i])
     }
+    /*
     val toFind : Int = 3
     var found : Boolean = false
     var n : Int
@@ -28,5 +30,6 @@ fun main() {
     }else{
         println("3 is not found.")
     }
+    */
         
 }
