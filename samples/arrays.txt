@@ -1,11 +1,10 @@
 fun main() {
     var x: Int = 2;
     println("Do while test")
-    do{
-        x = x - 1;
+    do{ 
+        x =  x - 1;
         println("Hello")
     }while (x > 0); // y is visible here!
-
     println("Array test")
     val i: Int = 0
     val list = Array<Int>(4){0};

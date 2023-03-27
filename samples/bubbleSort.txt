@@ -1,4 +1,4 @@
-fun bubbleSort(arr:Array<Int>, size:Int):Array<Int>{
+fun bubbleSort(arr:Array<Int>, size:Int){
     var swap: Boolean = true
     while(swap){
         swap = false
@@ -14,7 +14,6 @@ fun bubbleSort(arr:Array<Int>, size:Int):Array<Int>{
     }
     println(arr[0])
     println(arr[1])
-    return arr
 }
 
 fun main() {
@@ -23,5 +22,4 @@ fun main() {
     list[0] = 5
     list[1] = 1
     bubbleSort(list, 2);
-   
 }

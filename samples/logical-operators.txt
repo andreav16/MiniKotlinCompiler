@@ -4,7 +4,6 @@ fun f(x: Int): Int {
     {
       cur = cur / 10
     }
-    
     return cur
 }
 

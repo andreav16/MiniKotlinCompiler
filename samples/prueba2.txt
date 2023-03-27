@@ -1,7 +1,0 @@
-fun main(){
-    var abc: Int = 1;
-    while(abc<10){
-        println("Hola");
-        abc = abc + 1
-    }
-}

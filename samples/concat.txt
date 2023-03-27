@@ -2,7 +2,7 @@ fun main() {
 
     val start: String = "Talk is cheap. "
     val middle: String = "Show me the code. "
-     val end: String = "- Linus Torvalds"
+    val end: String = "- Linus Torvalds"
 
     var result: String = start + middle + end;
     println(result);
