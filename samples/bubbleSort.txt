@@ -8,23 +8,20 @@ fun bubbleSort(arr:Array<Int>, size:Int):Array<Int>{
                 val temp: Int = arr[i]
                 arr[i] = arr[i+1]
                 arr[i + 1] = temp
-
                 swap = true
             }
         }
     }
-    var i: Int;
-     for(i in 0 until 5){
-        println(arr[i])
-    }
+    println(arr[0])
+    println(arr[1])
     return arr
 }
 
 fun main() {
-    val list = Array<Int>(3){0};
+    val list = Array<Int>(2){0};
     var i: Int;
-    for(i in 0 until 3){
-        list[i] = 10-i;
-    }
-    bubbleSort(list, 3);
+    list[0] = 5
+    list[1] = 1
+    bubbleSort(list, 2);
+   
 }

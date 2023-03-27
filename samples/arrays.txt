@@ -1,25 +1,23 @@
 fun main() {
     var x: Int = 2;
+    println("Do while test")
     do{
         x = x - 1;
         println("Hello")
     }while (x > 0); // y is visible here!
 
-    var swap: Boolean = true
-    var size: Int = 3;
-    val arr = Array<Int>(3){0};
-    var i: Int;
-    while(swap){
-        swap = false
-        for(i in 0 until size-1){
-            if(arr[i] > arr[i+1]){
-                val temp: Int = arr[i]
-                arr[i] = arr[i+1]
-                arr[i + 1] = temp
-
-                swap = true
-            }
-        }
+    println("Array test")
+    val i: Int = 0
+    val list = Array<Int>(4){0};
+    var suma: Int
+    while(i < 4){
+       list[i]=i;
+       i=i+1;
+    }
+    i=0
+    while(i < 4){
+        println(list[i])
+        i = i + 1;
     }
 
 }

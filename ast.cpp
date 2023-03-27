@@ -898,11 +898,17 @@ void IdExpression::generateCode(CodeContext &context)
             context.place = intTemp;
             context.code = "lw " + intTemp + ", " + to_string(codeGenerationVars[this->id]->offset) + "($sp)\n";
         }
-        else if (codeGenerationVars[this->id]->type->isArray)
+        else if (codeGenerationVars[this->id]->type->isArray && codeGenerationVars[this->id]->type->primitiveType == INT)
         {
             string intTemp = getIntTemp();
             context.code = "la " + intTemp + ", " + to_string(codeGenerationVars[this->id]->offset) + "($sp)\n";
             context.place = intTemp;
+        }
+        else if (codeGenerationVars[this->id]->type->isArray && codeGenerationVars[this->id]->type->primitiveType == FLOAT)
+        {
+            string floattemp = getFloatTemp();
+            context.code = "l.d " + floattemp + ", " + to_string(codeGenerationVars[this->id]->offset) + "($sp)\n";
+            context.place = floattemp;
         }
     }
 }
@@ -960,6 +966,7 @@ void ArrayAccessExpression::generateCode(CodeContext &context)
         }
         else
         {
+            cout << "entra si es float" << endl;
             string value = getFloatTemp();
             code << "l.s " << value << ", 0(" << temp << ")" << endl;
             context.place = value;
@@ -1547,7 +1554,7 @@ string AssignationStatement::generateCode()
 
     if (codeGenerationVars.find(this->id) == codeGenerationVars.end()) // variables globales
     {
-        if (this->isArray)
+        if (this->isArray && this->expression->getType()->primitiveType == INT)
         {
             CodeContext indexCode;
             this->index->generateCode(indexCode);
@@ -1584,6 +1591,7 @@ string AssignationStatement::generateCode()
     }
     else // variables locales
     {
+        //Agregar validación del tipo del array si es float
         if (this->isArray)
         {
             CodeContext indexCode;
@@ -1652,7 +1660,7 @@ string ForStatement::generateCode()
          << forLabel << ": " << endl;
 
     // condicion
-    code << "bgt " << fromExprCode.place << ", " << toExprCode.place << ", " << endFor << endl;
+    code << "bge " << fromExprCode.place << ", " << toExprCode.place << ", " << endFor << endl;
     // stmts
     code << this->stmt->generateCode();
     // i++
@@ -1702,7 +1710,7 @@ string WhileStatement::generateCode()
     releaseRegister(exprCode.place);
     code << whileLabel << ": " << endl
          << exprCode.code << endl;
-    if (exprCode.type->primitiveType == INT)
+    if (exprCode.type->primitiveType == INT || exprCode.type->primitiveType == BOOLEAN)
     {
         code << "beqz " << exprCode.place << ", " << endWhile << endl;
     }
@@ -1751,12 +1759,7 @@ string retrieveState(string state)
 
 string FunctionStatement::generateCode()
 {
-    /*codeGenerationVars[this->id] = new CodeGenerationVarInfo(false, this->type, globalStackpointer);
-    cout << this->id << "\tfrom: " << globalStackpointer << "\t\tto:";
-    ArrayType *arrayType = ((ArrayType *)this->type);
-    globalStackpointer += arrayType->size * 4;
-    cout << globalStackpointer << endl;
-    return "";*/
+
     int stackPointer = 4;
     globalStackpointer = 0;
     stringstream code;
@@ -1775,11 +1778,17 @@ string FunctionStatement::generateCode()
                 stackPointer += 4;
                 globalStackpointer += 4;
                 paramsIt++;
-            }else if((*paramsIt)->type->isArray){
+            }
+            else if ((*paramsIt)->type->isArray)
+            {
+                cout << "id array: " << (*paramsIt)->id << endl;
+                cout << "stack pointer: " << stackPointer << endl;
+                cout << "global pointer: " << globalStackpointer << endl;
                 code << "sw $a" << i << ", " << stackPointer << "($sp)" << endl;
                 codeGenerationVars[(*paramsIt)->id] = new CodeGenerationVarInfo(true, (*paramsIt)->type, stackPointer);
-                stackPointer += 4;
-                globalStackpointer += 4;
+                ArrayType *arrayType = ((ArrayType *)(*paramsIt)->type);
+                stackPointer += arrayType->size * 4;
+                globalStackpointer += arrayType->size * 4;
                 paramsIt++;
             }
         }
