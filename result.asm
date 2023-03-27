@@ -199,8 +199,8 @@ li $t0, 20
 
 move $a0, $t0
 jal f
-mtc1 $v0, $f0
-s.s $f0, 40($sp)
+move $t0, $v0
+sw $t0, 40($sp)
 lw $t0, 40($sp)
 
 move $a0, $t0

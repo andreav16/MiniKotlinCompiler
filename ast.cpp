@@ -1690,8 +1690,31 @@ string ExpressionStatement::generateCode()
 
 string IncreDecreStatement::generateCode()
 {
+    stringstream code;
+    CodeContext leftSideCode;
+    string codeI = getIntTemp();
+    IdExpression * idExpr = static_cast<IdExpression *>(this->expr->expr);
+    this->expr->expr->generateCode(leftSideCode);
+    code << leftSideCode.code<<endl;
+    globalStackpointer-=4;
 
-    return "";
+    cout<<leftSideCode.globalVarName;
+
+    if (expr->op == INCRE)
+    {
+        code << "li " << codeI << " , 1" << endl;
+        code << "add " << leftSideCode.place << " ," << leftSideCode.place << ", "<< codeI << endl;
+        code << "sw " << leftSideCode.place << " ," << globalStackpointer<<"($sp)" << endl;
+        releaseRegister(codeI);
+
+    }else if (expr->op == DECRE){
+        code << "li " << codeI << " , 1" << endl;
+        code << "sub " << leftSideCode.place << " ," << leftSideCode.place << ", "<< codeI << endl;
+        code << "sw " << leftSideCode.place << " ," << globalStackpointer<<"($sp)" << endl;
+        releaseRegister(codeI);
+    }
+
+    return code.str();
 }
 
 string WhileStatement::generateCode()

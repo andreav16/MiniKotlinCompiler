@@ -2,7 +2,7 @@ fun main() {
     var x: Int = 2;
     println("Do while test")
     do{ 
-        x =  x - 1;
+        x--;
         println("Hello")
     }while (x > 0); // y is visible here!
     println("Array test")
