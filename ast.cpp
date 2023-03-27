@@ -966,7 +966,6 @@ void ArrayAccessExpression::generateCode(CodeContext &context)
         }
         else
         {
-            cout << "entra si es float" << endl;
             string value = getFloatTemp();
             code << "l.s " << value << ", 0(" << temp << ")" << endl;
             context.place = value;
@@ -1375,19 +1374,15 @@ void ArrayArgExpression::generateCode(CodeContext &context)
 string VarDeclarationStatement::generateCode()
 {
     codeGenerationVars[this->id] = new CodeGenerationVarInfo(false, this->type, globalStackpointer);
-    cout << this->id << "\tfrom: " << globalStackpointer << "\t\tto:";
     globalStackpointer += 4;
-    cout << globalStackpointer << endl;
     return "";
 }
 
 string ArrayVarDeclStatement::generateCode()
 {
     codeGenerationVars[this->id] = new CodeGenerationVarInfo(false, this->type, globalStackpointer);
-    cout << this->id << "\tfrom: " << globalStackpointer << "\t\tto:";
     ArrayType *arrayType = ((ArrayType *)this->type);
     globalStackpointer += arrayType->size * 4;
-    cout << globalStackpointer << endl;
     return "";
 }
 
@@ -1395,7 +1390,6 @@ string VarDeclAssignStatement::generateCode()
 {
     // declaracion
     codeGenerationVars[this->decl->id] = new CodeGenerationVarInfo(false, this->decl->type, globalStackpointer);
-    cout << this->decl->id << "\t" << globalStackpointer << endl;
     globalStackpointer += 4;
     // asignación
     CodeContext rightSideCode;
@@ -1781,9 +1775,6 @@ string FunctionStatement::generateCode()
             }
             else if ((*paramsIt)->type->isArray)
             {
-                cout << "id array: " << (*paramsIt)->id << endl;
-                cout << "stack pointer: " << stackPointer << endl;
-                cout << "global pointer: " << globalStackpointer << endl;
                 code << "sw $a" << i << ", " << stackPointer << "($sp)" << endl;
                 codeGenerationVars[(*paramsIt)->id] = new CodeGenerationVarInfo(true, (*paramsIt)->type, stackPointer);
                 ArrayType *arrayType = ((ArrayType *)(*paramsIt)->type);

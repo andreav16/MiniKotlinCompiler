@@ -38,5 +38,4 @@ fun main() {
     
     var result: Int = f(20)
     println(result)
-    
 }
