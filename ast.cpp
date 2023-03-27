@@ -829,28 +829,30 @@ void BooleanExpression::generateCode(CodeContext &context)
 {
     // li $t0, 1|0
     stringstream code;
-    string regTemp = getIntTemp(); 
-    code << "li " << regTemp << ", " <<this->value<<endl;
+    string regTemp = getIntTemp();
+    code << "li " << regTemp << ", " << this->value << endl;
     context.code = code.str();
-    context.place = regTemp; 
+    context.place = regTemp;
     context.type = new ComplexType((PrimitiveType)BOOLEAN, false);
 }
 
 void ReadExpression::generateCode(CodeContext &context)
 {
     stringstream codeS;
-    if (this->primitiveType == FLOAT){
+    if (this->primitiveType == FLOAT)
+    {
         context.place = getFloatTemp();
-        codeS <<"li $v0, 6"<<endl
-            <<"syscall"<<endl
-            << "mov.s "<< context.place <<", $f0" << endl;
+        codeS << "li $v0, 6" << endl
+              << "syscall" << endl
+              << "mov.s " << context.place << ", $f0" << endl;
         context.type = new ComplexType((PrimitiveType)FLOAT, false);
     }
-    else if (this->primitiveType == INT){
+    else if (this->primitiveType == INT)
+    {
         context.place = getIntTemp();
-        codeS <<"li $v0, 5"<<endl
-            <<"syscall"<<endl
-            << "move "<< context.place <<", $v0" << endl;
+        codeS << "li $v0, 5" << endl
+              << "syscall" << endl
+              << "move " << context.place << ", $v0" << endl;
         context.type = new ComplexType((PrimitiveType)INT, false);
     }
     context.code = codeS.str();
@@ -858,7 +860,7 @@ void ReadExpression::generateCode(CodeContext &context)
 
 void IdExpression::generateCode(CodeContext &context)
 {
-    if (codeGenerationVars.find(this->id) == codeGenerationVars.end()) //globales
+    if (codeGenerationVars.find(this->id) == codeGenerationVars.end()) // globales
     {
         context.globalVarName = this->id;
         context.type = globalVars[this->id];
@@ -881,7 +883,7 @@ void IdExpression::generateCode(CodeContext &context)
             context.code = "lw " + intTemp + ", " + this->id + "\n";
         }
     }
-    else //locales
+    else // locales
     {
         context.type = codeGenerationVars[this->id]->type;
         if (codeGenerationVars[this->id]->type->primitiveType == FLOAT && !codeGenerationVars[this->id]->type->isArray)
@@ -890,8 +892,7 @@ void IdExpression::generateCode(CodeContext &context)
             context.place = floatTemp;
             context.code = "l.s " + floatTemp + ", " + to_string(codeGenerationVars[this->id]->offset) + "($sp)\n";
         }
-        else if ( (codeGenerationVars[this->id]->type->primitiveType == INT || codeGenerationVars[this->id]->type->primitiveType == STRING || codeGenerationVars[this->id]->type->primitiveType == BOOLEAN)
-                && !codeGenerationVars[this->id]->type->isArray )
+        else if ((codeGenerationVars[this->id]->type->primitiveType == INT || codeGenerationVars[this->id]->type->primitiveType == STRING || codeGenerationVars[this->id]->type->primitiveType == BOOLEAN) && !codeGenerationVars[this->id]->type->isArray)
         {
             string intTemp = getIntTemp();
             context.place = intTemp;
@@ -900,7 +901,7 @@ void IdExpression::generateCode(CodeContext &context)
         else if (codeGenerationVars[this->id]->type->isArray)
         {
             string intTemp = getIntTemp();
-            context.code = "la " + intTemp + to_string(codeGenerationVars[this->id]->offset) + "($sp)\n";
+            context.code = "la " + intTemp + ", " + to_string(codeGenerationVars[this->id]->offset) + "($sp)\n";
             context.place = intTemp;
         }
     }
@@ -971,15 +972,15 @@ void ArrayAccessExpression::generateCode(CodeContext &context)
 
 void MethodCallExpression::generateCode(CodeContext &context)
 {
-    //PENDIENTE PROBAR
-    list<Expression*>::iterator it = this->args->begin();
+    // PENDIENTE PROBAR
+    list<Expression *>::iterator it = this->args->begin();
     list<CodeContext> codes;
     stringstream code;
     CodeContext argCode;
     while (it != this->args->end())
     {
         (*it)->generateCode(argCode);
-        code<<argCode.code <<endl;
+        code << argCode.code << endl;
         codes.push_back(argCode);
         it++;
     }
@@ -991,23 +992,27 @@ void MethodCallExpression::generateCode(CodeContext &context)
         releaseRegister((*codeIt).place);
         if ((*codeIt).type->primitiveType == INT)
         {
-            code << "move $a"<<i<<", "<<(*codeIt).place<<endl;
-        }else{
-            code << "mfc1 $a"<<i<<", "<<(*codeIt).place<<endl;
+            code << "move $a" << i << ", " << (*codeIt).place << endl;
+        }
+        else
+        {
+            code << "mfc1 $a" << i << ", " << (*codeIt).place << endl;
         }
         i++;
         codeIt++;
     }
-    
-    code <<"jal "<<this->id->id<<endl;
+
+    code << "jal " << this->id->id << endl;
     string result;
     if (methods[this->id->id]->returnType->primitiveType == FLOAT)
     {
         result = getFloatTemp();
-        code<<"mtc1 $v0, "<<result<<endl;
-    }else if(methods[this->id->id]->returnType->primitiveType == INT){
+        code << "mtc1 $v0, " << result << endl;
+    }
+    else if (methods[this->id->id]->returnType->primitiveType == INT)
+    {
         result = getIntTemp();
-        code<<"move "<<result<<", $v0"<<endl;
+        code << "move " << result << ", $v0" << endl;
     }
     context.code = code.str();
     context.place = result;
@@ -1016,7 +1021,27 @@ void MethodCallExpression::generateCode(CodeContext &context)
 
 void IncreDecreExpression::generateCode(CodeContext &context)
 {
-    //Nicole
+    /*stringstream code;
+    IdExpression * idExpr = static_cast<IdExpression *>(this->expr);
+    idExpr->generateCode(context);
+    if (codeGenerationVars.find(idExpr->id) == codeGenerationVars.end())
+    {
+        string reg1 = getIntTemp();
+        code << "lw " << reg1 << " ," << context.place << endl;
+        code << "addi " << reg1 << " ," << reg1 << " ,1" << endl;
+        code << "sw " << reg1 << " ," << idExpr->id << endl;
+        releaseRegister(reg1);
+    }
+    else
+    {
+        string reg1 = getIntTemp();
+        code << "lw " << reg1 << " ," << to_string(codeGenerationVars[idExpr->id]->offset) << "($sp)" << endl;
+        code << "addi " << reg1 << " ," << reg1 << " ,1" << endl;
+        code << "sw " << reg1 << " ," << codeGenerationVars.find(this->id->name)->second->offset << "($sp)" << endl;
+        releaseRegister(reg1);
+    }
+   // context.type = INT;
+    context.code = code.str();*/
 }
 
 void UnaryExpression::generateCode(CodeContext &context)
@@ -1025,9 +1050,10 @@ void UnaryExpression::generateCode(CodeContext &context)
     this->expr->generateCode(exprContext);
     stringstream code;
     code << exprContext.code;
-    if(this->op == NOT){
+    if (this->op == NOT)
+    {
         //  Set on less than immediate $1, $2, 1. if $2 < 1 then $1 = 1, else $1 = 0
-        code<<"slti "<<exprContext.place<<", "<<exprContext.place<<", 1"<<endl;    
+        code << "slti " << exprContext.place << ", " << exprContext.place << ", 1" << endl;
     }
     context.place = exprContext.place;
     context.code = code.str();
@@ -1106,12 +1132,12 @@ string floatArithmetic(CodeContext &leftCode, CodeContext &rightCode, CodeContex
         break;
     case '%':
         code << "div.s " << tempf1 << ", " << leftCode.place << ", " << rightCode.place << endl
-        << "cvt.w.s " << tempf2 << ", "<< tempf1<<endl
-        << "mfc1 "<< temp1 << ", " << tempf2<< endl
-        << "mtc1 "<< temp1 << ", " << tempf3<<endl
-        << "cvt.s.w "<< tempf3 << ", " << tempf3<< endl
-        << "mul.s " << tempf4 << ", " << rightCode.place << ", " << tempf3 << endl
-        << "sub.s " << resultCode.place<< ", " << leftCode.place << ", " <<  tempf4 << endl;
+             << "cvt.w.s " << tempf2 << ", " << tempf1 << endl
+             << "mfc1 " << temp1 << ", " << tempf2 << endl
+             << "mtc1 " << temp1 << ", " << tempf3 << endl
+             << "cvt.s.w " << tempf3 << ", " << tempf3 << endl
+             << "mul.s " << tempf4 << ", " << rightCode.place << ", " << tempf3 << endl
+             << "sub.s " << resultCode.place << ", " << leftCode.place << ", " << tempf4 << endl;
 
         releaseRegister(temp1);
         releaseRegister(tempf1);
@@ -1134,14 +1160,14 @@ string concatString(CodeContext &leftCode, CodeContext &rightCode, CodeContext &
         string tempReg = getIntTemp();
         string concatLoopLabel = newLabel("concat_loop");
         code << "move $a0, " << leftCode.place << endl
-            << "addi $a0, $a0, " << concatCounter << endl
-            << "move $a1, " << rightCode.place << endl
-            << concatLoopLabel << ": "<< endl
-            << "lb " << tempReg << ", ($a1) " << endl
-            << "sb " << tempReg << ", ($a0) " << endl
-            << "addi $a0, $a0, 1 " << endl
-            << "addi $a1, $a1, 1 " << endl
-            << "bnez "<< tempReg <<", " << concatLoopLabel << endl;
+             << "addi $a0, $a0, " << concatCounter << endl
+             << "move $a1, " << rightCode.place << endl
+             << concatLoopLabel << ": " << endl
+             << "lb " << tempReg << ", ($a1) " << endl
+             << "sb " << tempReg << ", ($a0) " << endl
+             << "addi $a0, $a0, 1 " << endl
+             << "addi $a1, $a1, 1 " << endl
+             << "bnez " << tempReg << ", " << concatLoopLabel << endl;
         releaseRegister(tempReg);
         resultCode.place = leftCode.place;
         concatCounter += 18;
@@ -1336,7 +1362,7 @@ GEN_COMPARE_CODE_BINARY_EXPR(Neq, "!=");
 
 void ArrayArgExpression::generateCode(CodeContext &context)
 {
-    //Falta
+    // Falta
 }
 
 string VarDeclarationStatement::generateCode()
@@ -1352,7 +1378,7 @@ string ArrayVarDeclStatement::generateCode()
 {
     codeGenerationVars[this->id] = new CodeGenerationVarInfo(false, this->type, globalStackpointer);
     cout << this->id << "\tfrom: " << globalStackpointer << "\t\tto:";
-    ArrayType * arrayType = ((ArrayType *)this->type);
+    ArrayType *arrayType = ((ArrayType *)this->type);
     globalStackpointer += arrayType->size * 4;
     cout << globalStackpointer << endl;
     return "";
@@ -1400,10 +1426,12 @@ string VarDeclAssignStatement::generateCode()
         else if (rightSideCode.type->primitiveType == STRING)
         {
             string temp = getIntTemp();
-            if(rightSideCode.place[0] == '$'){ //reg
+            if (rightSideCode.place[0] == '$')
+            { // reg
                 code << "move " << temp << ", " << rightSideCode.place << endl;
             }
-            else {
+            else
+            {
                 code << "la " << temp << ", " << rightSideCode.place << endl;
             }
 
@@ -1435,15 +1463,16 @@ string PrintStatement::generateCode()
     }
     else if (exprContext.type->primitiveType == STRING)
     {
-        if(exprContext.place[0] == '$'){
+        if (exprContext.place[0] == '$')
+        {
             code << "move $a0, " << exprContext.place << endl
                  << "li $v0, 4" << endl;
         }
-        else {
+        else
+        {
             code << "la $a0, " << exprContext.place << endl
-                << "li $v0, 4" << endl;
+                 << "li $v0, 4" << endl;
         }
-            
     }
     else if (exprContext.type->primitiveType == CHAR)
     {
@@ -1501,10 +1530,11 @@ string IfStatement::generateCode()
 
     code << this->trueStatement->generateCode() << endl
          << "j " << endifLabel << endl;
-    if (elseLabel != ""){
-        code<<elseLabel << ": " <<this->falseStatement->generateCode() << endl;
+    if (elseLabel != "")
+    {
+        code << elseLabel << ": " << this->falseStatement->generateCode() << endl;
     }
-        code << endifLabel << ": " << endl;
+    code << endifLabel << ": " << endl;
     return code.str();
 }
 
@@ -1615,21 +1645,21 @@ string ForStatement::generateCode()
     this->fromExpr->generateCode(fromExprCode);
     CodeContext toExprCode;
     this->toExpr->generateCode(toExprCode);
-    
-    code << fromExprCode.code << endl
-        << toExprCode.code << endl 
-        << "sw " << fromExprCode.place << ", " << codeGenerationVars[this->iteratorId]->offset << "($sp)" << endl
-        << forLabel<<": "<<endl;
 
-    //condicion
+    code << fromExprCode.code << endl
+         << toExprCode.code << endl
+         << "sw " << fromExprCode.place << ", " << codeGenerationVars[this->iteratorId]->offset << "($sp)" << endl
+         << forLabel << ": " << endl;
+
+    // condicion
     code << "bgt " << fromExprCode.place << ", " << toExprCode.place << ", " << endFor << endl;
-    //stmts
+    // stmts
     code << this->stmt->generateCode();
     // i++
     code << "addi " << fromExprCode.place << ", " << fromExprCode.place << ", 1" << endl
-        << "sw " << fromExprCode.place << ", " << codeGenerationVars[this->iteratorId]->offset << "($sp)" << endl
-        <<"j "<<forLabel<<endl
-        <<endFor<<": "<<endl;
+         << "sw " << fromExprCode.place << ", " << codeGenerationVars[this->iteratorId]->offset << "($sp)" << endl
+         << "j " << forLabel << endl
+         << endFor << ": " << endl;
     releaseRegister(fromExprCode.place);
     releaseRegister(toExprCode.place);
     return code.str();
@@ -1637,14 +1667,14 @@ string ForStatement::generateCode()
 
 string ReturnStatement::generateCode()
 {
-    //pendiente de probar
+    // pendiente de probar
     CodeContext exprCode;
     this->expression->generateCode(exprCode);
     releaseRegister(exprCode.place);
-    
+
     stringstream ss;
     ss << exprCode.code << endl
-    << "move $v0, "<< exprCode.place <<endl;
+       << "move $v0, " << exprCode.place << endl;
     return ss.str();
 }
 
@@ -1658,7 +1688,7 @@ string ExpressionStatement::generateCode()
 
 string IncreDecreStatement::generateCode()
 {
-    // Falta
+
     return "";
 }
 
@@ -1721,6 +1751,12 @@ string retrieveState(string state)
 
 string FunctionStatement::generateCode()
 {
+    /*codeGenerationVars[this->id] = new CodeGenerationVarInfo(false, this->type, globalStackpointer);
+    cout << this->id << "\tfrom: " << globalStackpointer << "\t\tto:";
+    ArrayType *arrayType = ((ArrayType *)this->type);
+    globalStackpointer += arrayType->size * 4;
+    cout << globalStackpointer << endl;
+    return "";*/
     int stackPointer = 4;
     globalStackpointer = 0;
     stringstream code;
@@ -1732,11 +1768,20 @@ string FunctionStatement::generateCode()
         list<VarDeclarationStatement *>::iterator paramsIt = this->params->begin();
         for (int i = 0; i < this->params->size(); i++)
         {
-            code << "sw $a" << i << ", " << stackPointer << "($sp)" << endl;
-            codeGenerationVars[(*paramsIt)->id] = new CodeGenerationVarInfo(true, (*paramsIt)->type, stackPointer);
-            stackPointer += 4;
-            globalStackpointer += 4;
-            paramsIt++;
+            if (!(*paramsIt)->type->isArray)
+            {
+                code << "sw $a" << i << ", " << stackPointer << "($sp)" << endl;
+                codeGenerationVars[(*paramsIt)->id] = new CodeGenerationVarInfo(true, (*paramsIt)->type, stackPointer);
+                stackPointer += 4;
+                globalStackpointer += 4;
+                paramsIt++;
+            }else if((*paramsIt)->type->isArray){
+                code << "sw $a" << i << ", " << stackPointer << "($sp)" << endl;
+                codeGenerationVars[(*paramsIt)->id] = new CodeGenerationVarInfo(true, (*paramsIt)->type, stackPointer);
+                stackPointer += 4;
+                globalStackpointer += 4;
+                paramsIt++;
+            }
         }
     }
     code << this->block->generateCode() << endl;

@@ -14,18 +14,17 @@ fun bubbleSort(arr:Array<Int>, size:Int):Array<Int>{
         }
     }
     var i: Int;
-     for(i in 0 until i){
+     for(i in 0 until 5){
         println(arr[i])
     }
     return arr
 }
 
 fun main() {
-    val list = Array<Int>(5){0};
+    val list = Array<Int>(3){0};
     var i: Int;
-    for(i in 0 until 5){
+    for(i in 0 until 3){
         list[i] = 10-i;
     }
-    bubbleSort(list, 5);
-   
+    bubbleSort(list, 3);
 }
